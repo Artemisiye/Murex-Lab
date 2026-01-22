@@ -1,0 +1,207 @@
+[
+    {
+        "id": "schem_cordage",
+        "name": "Fiber Cordage",
+        "type": "Component",
+        "station_id": "station_none",
+        "output_id": "mat_cordage",
+        "output_type": "material",
+        "tags": [
+            "Item.Class.Component.Binding"
+        ],
+        "slots": [
+            {
+                "id": "slot_fiber",
+                "label": "Plant Fibers",
+                "required_tags": [
+                    "Item.Class.Material.Fiber"
+                ]
+            }
+        ],
+        "base_stats": {
+            "strength": 1.0
+        }
+    },
+    {
+        "id": "schem_wooden_bucket",
+        "name": "Wooden Bucket",
+        "type": "Tool",
+        "station_id": "station_none",
+        "tags": [
+            "Item.Class.Tool.Bucket"
+        ],
+        "slots": [
+            {
+                "id": "slot_wood",
+                "label": "Wood Source",
+                "required_tags": [
+                    "Item.Class.Material.Wood"
+                ]
+            },
+            {
+                "id": "slot_binding",
+                "label": "Binding",
+                "required_tags": [
+                    "Item.Class.Component.Binding"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "schem_stone_axe",
+        "name": "Stone Axe",
+        "type": "Tool",
+        "station_id": "station_none",
+        "tags": [
+            "Item.Class.Tool.Axe"
+        ],
+        "slots": [
+            {
+                "id": "slot_head",
+                "label": "Stone Head",
+                "required_tags": [
+                    "Item.Class.Material.Stone"
+                ]
+            },
+            {
+                "id": "slot_handle",
+                "label": "Wood Handle",
+                "required_tags": [
+                    "Item.Class.Material.Wood"
+                ]
+            },
+            {
+                "id": "slot_binding",
+                "label": "Binding",
+                "required_tags": [
+                    "Item.Class.Component.Binding"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "schem_timber",
+        "name": "Timber Processing",
+        "type": "Processing",
+        "station_id": "station_none",
+        "output_id": "mat_timber",
+        "output_type": "material",
+        "slots": [
+            {
+                "id": "slot_log",
+                "label": "Raw Log",
+                "required_tags": [
+                    "Item.Trait.Logs"
+                ]
+            },
+            {
+                "id": "slot_tool",
+                "label": "Axe Requirement",
+                "required_tags": [
+                    "Item.Class.Tool.Axe"
+                ],
+                "catalyst": true
+            }
+        ]
+    },
+    {
+        "id": "schem_clay_paste",
+        "name": "Clay Paste",
+        "type": "Processing",
+        "station_id": "station_none",
+        "output_id": "mat_clay_paste",
+        "output_type": "material",
+        "slots": [
+            {
+                "id": "slot_clay",
+                "label": "Raw Clay",
+                "required_tags": [
+                    "Item.Class.Material.Clay"
+                ]
+            },
+            {
+                "id": "slot_water",
+                "label": "River Water",
+                "required_tags": [
+                    "Item.Class.Material.Liquid.Water"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "schem_brick_mold",
+        "name": "Wooden Brick Mold",
+        "type": "Tool",
+        "station_id": "station_none",
+        "output_id": "mat_brick_mold",
+        "output_type": "material",
+        "slots": [
+            {
+                "id": "slot_wood",
+                "label": "Timber",
+                "required_tags": [
+                    "Item.Class.Material.Wood.Timber"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "schem_unfired_brick",
+        "name": "Molding Bricks",
+        "type": "Processing",
+        "station_id": "station_none",
+        "output_id": "mat_unfired_brick",
+        "output_type": "material",
+        "slots": [
+            {
+                "id": "slot_paste",
+                "label": "Clay Paste",
+                "required_tags": [
+                    "Item.Class.Material.Clay.Paste"
+                ]
+            },
+            {
+                "id": "slot_mold",
+                "label": "Brick Mold",
+                "required_tags": [
+                    "Item.Class.Tool.Masonry.Mold"
+                ],
+                "catalyst": true
+            }
+        ]
+    },
+    {
+        "id": "schem_tallow",
+        "name": "Render Tallow",
+        "type": "Processing",
+        "station_id": "station_fire_pit",
+        "output_id": "mat_tallow",
+        "output_type": "material",
+        "slots": [
+            {
+                "id": "slot_fat",
+                "label": "Animal Fat",
+                "required_tags": [
+                    "Item.Trait.Fat"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "schem_charcoal",
+        "name": "Pit Charcoal",
+        "type": "Fuel",
+        "station_id": "station_fire_pit",
+        "output_id": "mat_charcoal",
+        "output_type": "material",
+        "slots": [
+            {
+                "id": "slot_wood",
+                "label": "Wood Logs",
+                "required_tags": [
+                    "Item.Trait.Logs"
+                ]
+            }
+        ]
+    }
+]

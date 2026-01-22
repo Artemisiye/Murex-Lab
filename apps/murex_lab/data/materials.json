@@ -1,0 +1,224 @@
+[
+    {
+        "id": "mat_oak_log",
+        "name": "Oak Log",
+        "tags": [
+            "Item.Class.Material.Wood",
+            "Item.Trait.Logs"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "mat_rough_stone",
+        "name": "Rough Stone",
+        "tags": [
+            "Item.Class.Material.Stone"
+        ],
+        "stats": {
+            "weight": 3.0
+        }
+    },
+    {
+        "id": "mat_plant_fibers",
+        "name": "Plant Fibers",
+        "tags": [
+            "Item.Class.Material.Fiber"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
+        "id": "mat_raw_clay",
+        "name": "Raw Clay",
+        "tags": [
+            "Item.Class.Material.Clay"
+        ],
+        "stats": {
+            "weight": 1.5
+        }
+    },
+    {
+        "id": "mat_flint_shard",
+        "name": "Flint Shard",
+        "tags": [
+            "Item.Class.Material.Stone.Flint"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "mat_river_water",
+        "name": "River Water",
+        "tags": [
+            "Item.Class.Material.Liquid.Water"
+        ],
+        "stats": {
+            "weight": 1.0
+        }
+    },
+    {
+        "id": "mat_timber",
+        "name": "Timber",
+        "tags": [
+            "Item.Class.Material.Wood.Timber"
+        ],
+        "stats": {
+            "weight": 1.5
+        }
+    },
+    {
+        "id": "mat_clay_paste",
+        "name": "Clay Paste",
+        "tags": [
+            "Item.Class.Material.Clay.Paste"
+        ],
+        "stats": {
+            "weight": 1.2
+        }
+    },
+    {
+        "id": "mat_unfired_brick",
+        "name": "Unfired Brick",
+        "tags": [
+            "Item.Class.Material.Masonry.UnfiredBrick"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "mat_fired_brick",
+        "name": "Fired Brick",
+        "tags": [
+            "Item.Class.Material.Masonry.Brick"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "mat_sand",
+        "name": "Sand",
+        "tags": [
+            "Item.Class.Material.Silica"
+        ],
+        "stats": {
+            "weight": 1.0
+        }
+    },
+    {
+        "id": "mat_limestone",
+        "name": "Limestone",
+        "tags": [
+            "Item.Class.Material.Stone.Limestone"
+        ],
+        "stats": {
+            "weight": 2.5
+        }
+    },
+    {
+        "id": "mat_cordage",
+        "name": "Cordage",
+        "tags": [
+            "Item.Class.Material.Fiber.Cordage",
+            "Item.Class.Component.Binding"
+        ],
+        "stats": {
+            "strength": 5
+        }
+    },
+    {
+        "id": "mat_brick_mold",
+        "name": "Brick Mold",
+        "tags": [
+            "Item.Class.Tool.Masonry.Mold"
+        ],
+        "stats": {
+            "durability": 10
+        }
+    },
+    {
+        "id": "mat_charcoal",
+        "name": "Charcoal",
+        "tags": [
+            "Item.Class.Material.Fuel.Charcoal"
+        ],
+        "stats": {
+            "burn_temp": 800
+        }
+    },
+    {
+        "id": "mat_iron_ore",
+        "name": "Iron Ore",
+        "tags": [
+            "Item.Class.Material.Ore.Iron"
+        ],
+        "stats": {
+            "purity": 1.0
+        }
+    },
+    {
+        "id": "mat_iron_ingot",
+        "name": "Iron Ingot",
+        "tags": [
+            "Item.Class.Material.Metal.Iron"
+        ],
+        "stats": {
+            "durability_mod": 1.2
+        }
+    },
+    {
+        "id": "mat_raw_hide",
+        "name": "Raw Hide",
+        "tags": [
+            "Item.Class.Material.Hide"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "mat_tanned_leather",
+        "name": "Tanned Leather",
+        "tags": [
+            "Item.Class.Material.Leather"
+        ],
+        "stats": {
+            "flexibility": 8
+        }
+    },
+    {
+        "id": "mat_animal_fat",
+        "name": "Animal Fat",
+        "tags": [
+            "Item.Trait.Fat"
+        ],
+        "stats": {
+            "weight": 0.2
+        }
+    },
+    {
+        "id": "mat_pouch",
+        "name": "Small Pouch",
+        "tags": [
+            "Item.Class.Container"
+        ],
+        "stats": {
+            "capacity": 5
+        }
+    },
+    {
+        "id": "mat_knife_rusty",
+        "name": "Rusty Knife",
+        "tags": [
+            "Item.Class.Tool.Knife"
+        ],
+        "stats": {
+            "sharpness": 1
+        }
+    }
+]

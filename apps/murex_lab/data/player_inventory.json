@@ -1,0 +1,120 @@
+{
+    "mat_pouch": {
+        "item_id": "mat_pouch",
+        "item_type": "material",
+        "quantity": 1,
+        "data": {}
+    },
+    "mat_knife_rusty": {
+        "item_id": "mat_knife_rusty",
+        "item_type": "material",
+        "quantity": 1,
+        "data": {}
+    },
+    "mat_oak_log": {
+        "item_id": "mat_oak_log",
+        "item_type": "material",
+        "quantity": 3,
+        "data": {}
+    },
+    "mat_plant_fibers": {
+        "item_id": "mat_plant_fibers",
+        "item_type": "material",
+        "quantity": 16,
+        "data": {}
+    },
+    "mat_stone": {
+        "item_id": "mat_stone",
+        "item_type": "material",
+        "quantity": 12,
+        "data": {}
+    },
+    "mat_flint": {
+        "item_id": "mat_flint",
+        "item_type": "material",
+        "quantity": 13,
+        "data": {}
+    },
+    "mat_iron_ore": {
+        "item_id": "mat_iron_ore",
+        "item_type": "material",
+        "quantity": 12,
+        "data": {}
+    },
+    "schem_cordage_7": {
+        "item_id": "schem_cordage",
+        "item_type": "product",
+        "quantity": 1,
+        "data": {
+            "stats": {
+                "flexibility": 1.0
+            },
+            "name": "Custom Fiber Cordage"
+        }
+    },
+    "mat_raw_clay": {
+        "item_id": "mat_raw_clay",
+        "item_type": "material",
+        "quantity": 5,
+        "data": {}
+    },
+    "mat_river_water": {
+        "item_id": "mat_river_water",
+        "item_type": "material",
+        "quantity": 5,
+        "data": {}
+    },
+    "mat_wild_seeds": {
+        "item_id": "mat_wild_seeds",
+        "item_type": "material",
+        "quantity": 6,
+        "data": {}
+    },
+    "mat_flint_shard": {
+        "item_id": "mat_flint_shard",
+        "item_type": "material",
+        "quantity": 2,
+        "data": {}
+    },
+    "mat_rough_stone": {
+        "item_id": "mat_rough_stone",
+        "item_type": "material",
+        "quantity": 3,
+        "data": {}
+    },
+    "schem_wooden_bucket_14": {
+        "item_id": "schem_wooden_bucket",
+        "item_type": "product",
+        "quantity": 1,
+        "data": {
+            "stats": {
+                "weight": 2.0,
+                "strength": 5
+            },
+            "name": "Custom Wooden Bucket"
+        }
+    },
+    "schem_stone_axe_14": {
+        "item_id": "schem_stone_axe",
+        "item_type": "product",
+        "quantity": 1,
+        "data": {
+            "stats": {
+                "weight": 2.5,
+                "strength": 1.0
+            },
+            "name": "Custom Stone Axe"
+        }
+    },
+    "mat_timber": {
+        "item_id": "mat_timber",
+        "item_type": "material",
+        "quantity": 1,
+        "data": {
+            "stats": {
+                "weight": 2.0
+            },
+            "name": "Timber Processing"
+        }
+    }
+}

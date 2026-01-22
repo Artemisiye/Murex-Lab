@@ -1,0 +1,67 @@
+{
+    "recipes": [
+        {
+            "inputs": [
+                "copper_ore",
+                "coal"
+            ],
+            "output": "copper_ingot"
+        },
+        {
+            "inputs": [
+                "tin_ore",
+                "coal"
+            ],
+            "output": "tin_ingot"
+        },
+        {
+            "inputs": [
+                "iron_ore",
+                "coal"
+            ],
+            "output": "iron_ingot"
+        },
+        {
+            "inputs": [
+                "copper_ingot",
+                "tin_ingot"
+            ],
+            "output": "bronze_ingot"
+        },
+        {
+            "inputs": [
+                "iron_ingot",
+                "coal"
+            ],
+            "output": "steel_ingot"
+        },
+        {
+            "inputs": [
+                "water",
+                "salt"
+            ],
+            "output": "brine"
+        },
+        {
+            "inputs": [
+                "copper_ingot",
+                "copper_ingot"
+            ],
+            "output": "copper_blade"
+        },
+        {
+            "inputs": [
+                "bronze_ingot",
+                "bronze_ingot"
+            ],
+            "output": "bronze_blade"
+        },
+        {
+            "inputs": [
+                "iron_ingot",
+                "iron_ingot"
+            ],
+            "output": "iron_blade"
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+[
+    {
+        "id": "comp_cordage_simple",
+        "name": "Braided Cordage",
+        "material_id": "mat_plant_fibers",
+        "tags": [
+            "Item.Class.Component.Binding.Cordage"
+        ],
+        "stats": {
+            "strength": 5
+        }
+    },
+    {
+        "id": "comp_tool_handle_wood",
+        "name": "Rough Wood Handle",
+        "material_id": "mat_oak_log",
+        "tags": [
+            "Item.Class.Component.Handle.Wood"
+        ],
+        "stats": {
+            "ergonomics": 5
+        }
+    },
+    {
+        "id": "comp_axe_head_stone",
+        "name": "Rough Stone Axe-Head",
+        "material_id": "mat_stone",
+        "tags": [
+            "Item.Class.Component.ToolHead.Axe"
+        ],
+        "stats": {
+            "power": 8
+        }
+    }
+]

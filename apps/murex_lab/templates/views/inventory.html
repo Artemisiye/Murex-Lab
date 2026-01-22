@@ -1,0 +1,132 @@
+<div class="inventory-container">
+    <div class="panel full-panel">
+        <div class="panel-header">Storage & Vault</div>
+
+        <div class="inventory-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="material">Materials</button>
+            <button class="filter-btn" data-filter="component">Components</button>
+            <button class="filter-btn" data-filter="product">Products</button>
+        </div>
+
+        <div class="inventory-grid" id="inventory-display">
+            <!-- Items populated via JS -->
+            <div class="loading">Opening vault...</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .inventory-container {
+        height: 100%;
+    }
+
+    .full-panel {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .inventory-filters {
+        padding: 15px;
+        display: flex;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid #444;
+    }
+
+    .filter-btn {
+        background: #333;
+        border: 1px solid #555;
+        color: #eee;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: 'Lato', sans-serif;
+    }
+
+    .filter-btn:hover {
+        background: #444;
+    }
+
+    .filter-btn.active {
+        background: var(--accent);
+        color: #111;
+        font-weight: bold;
+        border-color: var(--accent);
+    }
+
+    .inventory-grid {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+
+    .inventory-card {
+        background: #222;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, border-color 0.2s;
+        position: relative;
+    }
+
+    .inventory-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent);
+    }
+
+    .item-type-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #444;
+        color: #aaa;
+    }
+
+    .item-name {
+        font-family: 'Cinzel', serif;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        color: var(--accent);
+    }
+
+    .item-qty {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: auto;
+    }
+
+    .item-details {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 5px;
+        border-top: 1px solid #333;
+        padding-top: 5px;
+    }
+
+    /* Type Specific Colors */
+    .type-material .item-type-tag {
+        background: #2980b9;
+        color: white;
+    }
+
+    .type-component .item-type-tag {
+        background: #d35400;
+        color: white;
+    }
+
+    .type-product .item-type-tag {
+        background: #8e44ad;
+        color: white;
+    }
+</style>

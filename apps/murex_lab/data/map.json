@@ -1,0 +1,56 @@
+[
+    {
+        "id": "loc_forest_1",
+        "name": "Whispering Woods",
+        "type": "forest",
+        "x": 5,
+        "y": 3,
+        "difficulty": 1,
+        "yields": [
+            {
+                "id": "mat_oak_log",
+                "chance": 0.8,
+                "min_qty": 2,
+                "max_qty": 5
+            }
+        ]
+    },
+    {
+        "id": "loc_mine_1",
+        "name": "Rusty Ridge",
+        "type": "mine",
+        "x": 8,
+        "y": 2,
+        "difficulty": 1,
+        "yields": [
+            {
+                "id": "mat_iron_ingot",
+                "chance": 0.7,
+                "min_qty": 1,
+                "max_qty": 3
+            }
+        ]
+    },
+    {
+        "id": "loc_ruins_1",
+        "name": "Broken Spires",
+        "type": "ruins",
+        "x": 4,
+        "y": 6,
+        "difficulty": 2,
+        "yields": [
+            {
+                "id": "mat_iron_ingot",
+                "chance": 0.3,
+                "min_qty": 1,
+                "max_qty": 2
+            },
+            {
+                "id": "comp_sword_hilt_oak",
+                "chance": 0.2,
+                "min_qty": 1,
+                "max_qty": 1
+            }
+        ]
+    }
+]

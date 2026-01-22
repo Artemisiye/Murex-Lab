@@ -1,0 +1,14 @@
+63f7b34db8d8cdea90c76aacccf841ec
+::res://::1768875071
+GDD.md::TextFile::-1::1768872591::0::1::::<><><>0<>0<><>::
+icon.svg::CompressedTexture2D::45452703461595815::1768873998::1768874568::1::::<><><>0<>0<>32b7bd658897cefa1d6365c78be3cbc9<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+README.md::TextFile::-1::1768874000::0::1::::<><><>0<>0<><>::
+TROUBLESHOOTING.md::TextFile::-1::1768874772::0::1::::<><><>0<>0<><>::
+::res://Scenes/::1768873956
+Main.tscn::PackedScene::3907849644058263409::1768874770::0::1::::<><><>0<>0<><>::res://Scripts/Main.gd<>res://Scripts/MapSystem.gd<>res://Scripts/SettlerManager.gd<>res://Scripts/CraftingPanel.gd
+::res://Scripts/::1768874568
+CraftingPanel.gd::GDScript::5276083518191374752::1768873951::0::1::::<>Panel<><>0<>0<><>::
+Main.gd::GDScript::6775162133084465071::1768873979::0::1::::<>Node2D<><>0<>0<><>::
+Main_additions.gd::GDScript::797900262893371750::1768873958::0::1::::<>RefCounted<><>0<>0<><>::
+MapSystem.gd::GDScript::7133949415207541744::1768875046::0::1::::<>Node2D<><>0<>0<><>::
+SettlerManager.gd::GDScript::2232828949062406934::1768873932::0::1::::<>Node<><>0<>0<><>::
