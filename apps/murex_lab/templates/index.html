@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Murex Lab</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Simonetta:ital,wght@0,400;0,900;1,400;1,900&family=Ysabeau+Office:ital,wght@0,100..1000;1,100..1000&display=swap"
         rel="stylesheet">
 </head>
 
@@ -16,16 +17,17 @@
         <nav class="sidebar">
             <div class="logo">MUREX LAB</div>
             <ul class="nav-links">
-                <li class="active" data-view="workshop">⚒️ Workshop</li>
-                <li data-view="inventory">🎒 Inventory</li>
-                <li data-view="map">🗺️ Map</li>
-                <li data-view="orders">📜 Orders</li>
-                <li data-view="minions">👥 Minions</li>
-                <li data-view="research">⚗️ Research</li>
+                <li class="active" data-view="workshop">Workshop</li>
+                <li data-view="inventory">Inventory</li>
+                <li data-view="map">Map</li>
+                <li data-view="orders">Orders</li>
+                <li data-view="minions">Minions</li>
+                <li data-view="research">Research</li>
             </ul>
             <div class="player-status">
-                <div class="gold">💰 0 Gold</div>
-                <div class="date">📅 Day 1</div>
+                <div class="energy" id="energy-display">Essence: 100</div>
+                <div class="gold">Gold: 0</div>
+                <div class="date">Day 1</div>
             </div>
         </nav>
 

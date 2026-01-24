@@ -41,7 +41,37 @@ The game revolves around three distinct phases that feed into each other:
 
 ---
 
-## 🛠️ Technical Architecture
+## � The Artificer's Philosophy: Item & Recipe Design
+
+The crafting system in Murex Lab avoids generic RPG tropes in favor of a "Provenance-First" approach. Our design mindset for expanding items and recipes follows five core pillars:
+
+### 1. The Great Chain of Artificery (Civilization Stages)
+Items are not just sorted by "Tier 1, Tier 2"; they are sorted by **Civilization Branches**. 
+*   **The Hand**: Manual gathering and primitive assembly.
+*   **The Shaper**: Masonry, pottery, and structural woodworking.
+*   **The Thermal Threshold**: Mastery of heat (Kilns/Smelters) for metallurgy and glass.
+*   **The High Lab**: Advanced chemistry, optics, and fog-energy imbuing.
+
+### 2. Direct Provenance (No Forced Intermediates)
+We minimize "forced" crafting steps. If a recipe requires a blade, it accepts the metal material directly (e.g., an Iron Ingot). The act of crafting the final item includes the forging/shaping of its parts. Intermediate components only exist when they serve as a shared base for *many* varied outcomes (e.g., **Cordage** for all bindings, **Timber** for all construction).
+
+### 3. Catalysts vs. Consumption
+Tools and infrastructure are **Catalysts**. 
+*   An **Axe** is required to process Logs into Timber, but it is not consumed in the process.
+*   A **Brick Mold** is used as a template to form Unfired Bricks.
+*   Progress is measured not just by what you *have*, but by what **Stations** you have integrated into your workshop.
+
+### 4. Logical Material Lineage
+Every item must have a traceable, logical history. 
+*   **Example**: `Raw Hide` -> `Drying Rack` -> `Tannery Vat (+Tree Bark)` -> `Cured Leather`. 
+*   If a link is missing in the logic (e.g., how do we get water?), we create the necessary tool (**Wooden Bucket**) and the resource node (**Winding River**) to bridge the gap.
+
+### 5. Historical & Scientific Grounding
+We pull from historical technology and alchemy. We use terms like **Cinnabar**, **Tallow**, **Cured Hide**, and **Borax**. This grounds the "Magical Artificery" in a world that feels physically real and taxing to master.
+
+---
+
+## �🛠️ Technical Architecture
 
 *   **Engine**: Python (Flask) + HTML/JS (Frontend).
 *   **Distribution**: Single standalone `.exe` (via Murex Capsule Engine).

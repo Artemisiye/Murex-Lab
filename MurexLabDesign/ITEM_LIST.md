@@ -13,31 +13,33 @@ This list contains all materials, intermediate products, and final crafted items
 8.  **Animal Fat**: Rendered into tallow.
 9.  **Tree Bark**: Source of tannins for leather.
 10. **Cinnabar Ore**: Red stone containing Quicksilver.
-11. **Native Copper**: Rare pure copper clusters.
-12. **Iron Ore**: Hematite or Magnetite.
-13. **Tin Ore**: Essential for Bronze.
-14. **Sand**: Silica for glass and mortar.
-15. **Wild Seeds**: Found in meadows.
-16. **Bitter Herbs**: Medicinal/Alchemical base.
-17. **Sea Salt**: Found in dry coastal cells.
+11. **Malachite Ore**: Green stone containing Copper.
+12. **
+12. **Native Copper**: Rare pure copper clusters.
+13. **Iron Ore**: Hematite or Magnetite.
+14. **Tin Ore**: Essential for Bronze.
+15. **Sand**: Silica for glass and mortar.
+16. **Wild Seeds**: Found in meadows.
+17. **Bitter Herbs**: Medicinal/Alchemical base.
+18. **Sea Salt**: Found in dry coastal cells.
 
 ## 🏺 The Workshop & Infrastructure (Fabricated / Processed)
-18. **Cordage**: Braided plant fibers.
-19. **Timber**: Squared wood beams.
-20. **Clay Paste**: Moisturized clay.
-21. **Unfired Brick**: Sun-dried brick.
-22. **Fired Brick**: Kiln-hardened brick.
-23. **Charcoal**: Refined wood fuel.
-24. **Animal Tallow**: Rendered fat.
-25. **Crushed Limestone**: Powdered mineral.
-26. **Mortar**: Limestone + Sand + Water (Binding agent).
-27. **Dried Skin**: Raw hide stretched on a rack.
-28. **Cured Leather**: Skin processed with bark/tannins.
-29. **Glass Frit**: Crushed silica mix for melting.
-30. **Clear Glass**: Blown glass material.
-31. **Pottery Bowl**: Fired clay container.
-32. **Ceramic Jar**: Sealed vessel for fluids.
-33. **Woven Fabric**: Loom-processed fibers.
+19. **Cordage**: Braided plant fibers.
+20. **Timber**: Squared wood beams.
+21. **Clay Paste**: Moisturized clay.
+22. **Unfired Brick**: Sun-dried brick.
+23. **Fired Brick**: Kiln-hardened brick.
+24. **Charcoal**: Refined wood fuel.
+25. **Animal Tallow**: Rendered fat.
+26. **Crushed Limestone**: Powdered mineral.
+27. **Mortar**: Limestone + Sand + Water (Binding agent).
+28. **Dried Skin**: Raw hide stretched on a rack.
+29. **Cured Leather**: Skin processed with bark/tannins.
+30. **Glass Frit**: Crushed silica mix for melting.
+31. **Clear Glass**: Blown glass material.
+32. **Pottery Bowl**: Fired clay container.
+33. **Ceramic Jar**: Sealed vessel for fluids.
+34. **Woven Fabric**: Loom-processed fibers.
 
 ## ⚒️ Metals & Alloys (The Forge)
 34. **Copper Ingot**: Pure copper.

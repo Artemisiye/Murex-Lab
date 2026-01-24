@@ -51,6 +51,126 @@
         }
     },
     {
+        "id": "mat_limestone",
+        "name": "Limestone",
+        "tags": [
+            "Item.Class.Material.Stone.Limestone"
+        ],
+        "stats": {
+            "weight": 2.5
+        }
+    },
+    {
+        "id": "mat_raw_hide",
+        "name": "Raw Hide",
+        "tags": [
+            "Item.Class.Material.Hide"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "mat_animal_fat",
+        "name": "Animal Fat",
+        "tags": [
+            "Item.Trait.Fat"
+        ],
+        "stats": {
+            "weight": 0.2
+        }
+    },
+    {
+        "id": "mat_tree_bark",
+        "name": "Tree Bark",
+        "tags": [
+            "Item.Trait.Tannin"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
+        "id": "mat_cinnabar_ore",
+        "name": "Cinnabar Ore",
+        "tags": [
+            "Item.Class.Material.Ore.Cinnabar"
+        ],
+        "stats": {
+            "weight": 1.2
+        }
+    },
+    {
+        "id": "mat_native_copper",
+        "name": "Native Copper",
+        "tags": [
+            "Item.Class.Material.Metal.Copper.Raw"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "mat_iron_ore",
+        "name": "Iron Ore",
+        "tags": [
+            "Item.Class.Material.Ore.Iron"
+        ],
+        "stats": {
+            "weight": 2.5
+        }
+    },
+    {
+        "id": "mat_tin_ore",
+        "name": "Tin Ore",
+        "tags": [
+            "Item.Class.Material.Ore.Tin"
+        ],
+        "stats": {
+            "weight": 2.2
+        }
+    },
+    {
+        "id": "mat_sand",
+        "name": "Sand",
+        "tags": [
+            "Item.Class.Material.Silica"
+        ],
+        "stats": {
+            "weight": 1.0
+        }
+    },
+    {
+        "id": "mat_wild_seeds",
+        "name": "Wild Seeds",
+        "tags": [
+            "Item.Class.Material.Seed"
+        ],
+        "stats": {
+            "weight": 0.05
+        }
+    },
+    {
+        "id": "mat_bitter_herbs",
+        "name": "Bitter Herbs",
+        "tags": [
+            "Item.Class.Material.Herb"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
+        "id": "mat_sea_salt",
+        "name": "Sea Salt",
+        "tags": [
+            "Item.Class.Material.Mineral.Salt"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
         "id": "mat_river_water",
         "name": "River Water",
         "tags": [
@@ -58,6 +178,17 @@
         ],
         "stats": {
             "weight": 1.0
+        }
+    },
+    {
+        "id": "mat_cordage",
+        "name": "Cordage",
+        "tags": [
+            "Item.Class.Material.Fiber.Cordage",
+            "Item.Class.Component.Binding"
+        ],
+        "stats": {
+            "strength": 5
         }
     },
     {
@@ -101,47 +232,6 @@
         }
     },
     {
-        "id": "mat_sand",
-        "name": "Sand",
-        "tags": [
-            "Item.Class.Material.Silica"
-        ],
-        "stats": {
-            "weight": 1.0
-        }
-    },
-    {
-        "id": "mat_limestone",
-        "name": "Limestone",
-        "tags": [
-            "Item.Class.Material.Stone.Limestone"
-        ],
-        "stats": {
-            "weight": 2.5
-        }
-    },
-    {
-        "id": "mat_cordage",
-        "name": "Cordage",
-        "tags": [
-            "Item.Class.Material.Fiber.Cordage",
-            "Item.Class.Component.Binding"
-        ],
-        "stats": {
-            "strength": 5
-        }
-    },
-    {
-        "id": "mat_brick_mold",
-        "name": "Brick Mold",
-        "tags": [
-            "Item.Class.Tool.Masonry.Mold"
-        ],
-        "stats": {
-            "durability": 10
-        }
-    },
-    {
         "id": "mat_charcoal",
         "name": "Charcoal",
         "tags": [
@@ -152,13 +242,103 @@
         }
     },
     {
-        "id": "mat_iron_ore",
-        "name": "Iron Ore",
+        "id": "mat_tallow",
+        "name": "Animal Tallow",
         "tags": [
-            "Item.Class.Material.Ore.Iron"
+            "Item.Class.Material.Fuel.Tallow"
         ],
         "stats": {
-            "purity": 1.0
+            "burn_temp": 400
+        }
+    },
+    {
+        "id": "mat_crushed_limestone",
+        "name": "Crushed Limestone",
+        "tags": [
+            "Item.Class.Material.Powder"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "mat_mortar",
+        "name": "Mortar",
+        "tags": [
+            "Item.Class.Material.Masonry.Binding"
+        ],
+        "stats": {
+            "weight": 1.0
+        }
+    },
+    {
+        "id": "mat_dried_skin",
+        "name": "Dried Skin",
+        "tags": [
+            "Item.Class.Material.Hide.Dried"
+        ],
+        "stats": {
+            "weight": 0.4
+        }
+    },
+    {
+        "id": "mat_cured_leather",
+        "name": "Cured Leather",
+        "tags": [
+            "Item.Class.Material.Leather"
+        ],
+        "stats": {
+            "flexibility": 8
+        }
+    },
+    {
+        "id": "mat_glass_frit",
+        "name": "Glass Frit",
+        "tags": [
+            "Item.Class.Material.Glass.Raw"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "mat_clear_glass",
+        "name": "Clear Glass",
+        "tags": [
+            "Item.Class.Material.Glass.Refined"
+        ],
+        "stats": {
+            "transparency": 10
+        }
+    },
+    {
+        "id": "mat_pottery_bowl",
+        "name": "Pottery Bowl",
+        "tags": [
+            "Item.Class.Material.Ceramic.Container"
+        ],
+        "stats": {
+            "volume": 1
+        }
+    },
+    {
+        "id": "mat_ceramic_jar",
+        "name": "Ceramic Jar",
+        "tags": [
+            "Item.Class.Material.Ceramic.Container.Sealed"
+        ],
+        "stats": {
+            "volume": 2
+        }
+    },
+    {
+        "id": "mat_woven_fabric",
+        "name": "Woven Fabric",
+        "tags": [
+            "Item.Class.Material.Textile"
+        ],
+        "stats": {
+            "flexibility": 10
         }
     },
     {
@@ -172,33 +352,53 @@
         }
     },
     {
-        "id": "mat_raw_hide",
-        "name": "Raw Hide",
+        "id": "mat_copper_ingot",
+        "name": "Copper Ingot",
         "tags": [
-            "Item.Class.Material.Hide"
+            "Item.Class.Material.Metal.Copper"
         ],
         "stats": {
-            "weight": 0.5
+            "conductivity": 8
         }
     },
     {
-        "id": "mat_tanned_leather",
-        "name": "Tanned Leather",
+        "id": "mat_tin_ingot",
+        "name": "Tin Ingot",
         "tags": [
-            "Item.Class.Material.Leather"
+            "Item.Class.Material.Metal.Tin"
         ],
         "stats": {
-            "flexibility": 8
+            "weight": 1.8
         }
     },
     {
-        "id": "mat_animal_fat",
-        "name": "Animal Fat",
+        "id": "mat_bronze_ingot",
+        "name": "Bronze Ingot",
         "tags": [
-            "Item.Trait.Fat"
+            "Item.Class.Material.Metal.Alloy.Bronze"
         ],
         "stats": {
-            "weight": 0.2
+            "durability_mod": 1.5
+        }
+    },
+    {
+        "id": "mat_quicksilver",
+        "name": "Quicksilver",
+        "tags": [
+            "Item.Class.Material.Metal.Liquid.Mercury"
+        ],
+        "stats": {
+            "volatility": 10
+        }
+    },
+    {
+        "id": "mat_brick_mold",
+        "name": "Brick Mold",
+        "tags": [
+            "Item.Class.Tool.Masonry.Mold"
+        ],
+        "stats": {
+            "durability": 10
         }
     },
     {
@@ -219,6 +419,26 @@
         ],
         "stats": {
             "sharpness": 1
+        }
+    },
+    {
+        "id": "mat_stone",
+        "name": "Stone (Legacy)",
+        "tags": [
+            "Item.Class.Material.Stone"
+        ],
+        "stats": {
+            "weight": 2.5
+        }
+    },
+    {
+        "id": "mat_flint",
+        "name": "Flint (Legacy)",
+        "tags": [
+            "Item.Class.Material.Stone.Flint"
+        ],
+        "stats": {
+            "weight": 0.4
         }
     }
 ]

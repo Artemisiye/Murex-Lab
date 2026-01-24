@@ -62,3 +62,14 @@
 48. **Set Bonuses**: Designing armor sets that grant bonuses when worn together.
 49. **Apprentices**: Training junior smiths who can eventually run branch shops.
 50. **The Endless Tower**: A procedural dungeon where you test your own weapons.
+51. **Minion Evolution (SW)**: Sacrificing duplicates to increase the "Star Rating" and level cap of constructs.
+52. **Engraving Substat Rerolls (SW)**: Using late-game materials to "Reappraise" the random stats on a piece of gear.
+53. **Speed-Tick Combat (SW)**: A dynamic turn-order system where "Speed" determines turn frequency (Attack Bar).
+54. **Elemental Wheel Advantage (SW)**: Implementation of Crushing Hits and Glancing Hits based on Fire/Water/Earth affinity.
+55. **Monster Fusion Recipes (SW)**: Deterministic crafting of legendary-tier minions by combining specific high-tier materials.
+56. **Hybrid Scaling Engine (SW)**: Combat system that allows skills to scale damage based on HP, DEF, or SPD instead of just ATK.
+57. **Resonance Economy (SW)**: Implementation of a regenerating stamina system to balance engagement and resource scarcity.
+58. **Repeat Processor (Auto-Farm)**: A "Research" project that allows minions to auto-run a dungeon X times in the background.
+59. **Logic Cores (Filtering)**: Customizable scriptable filters for the Repeat Processor to auto-sell low-quality Engravings.
+60. **Difficulty Tiers (Campaign)**: Normal/Hard/Hell modes for map nodes to provide veteran challenges and better loot.
+61. **Team Synergy Passives**: "Leader Skills" that provide global stat boosts (e.g., +30% Fire Attack) only when a specific minion is in the lead slot.

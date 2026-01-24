@@ -1,0 +1,226 @@
+<div class="minions-wrapper">
+    <div class="minion-list" id="minion-list">
+        <!-- Minion cards will be injected here -->
+        <div class="loading-state">Accessing Minion Consciousness...</div>
+    </div>
+
+    <div class="minion-details hidden" id="minion-details">
+        <div class="panel detail-panel-inner">
+            <div class="panel-header">
+                <div class="header-flex">
+                    <span id="detail-name">Minion Unit</span>
+                    <span id="detail-stars" class="stars">⭐⭐⭐</span>
+                </div>
+            </div>
+
+            <div class="details-body">
+                <div class="section-label">Performance Metrics</div>
+                <div class="stat-grid">
+                    <div class="stat-item"><span>HP:</span> <strong id="val-hp">1000</strong></div>
+                    <div class="stat-item"><span>ATK:</span> <strong id="val-atk">150</strong></div>
+                    <div class="stat-item"><span>DEF:</span> <strong id="val-def">80</strong></div>
+                    <div class="stat-item"><span>SPD:</span> <strong id="val-spd">110</strong></div>
+                    <div class="stat-item"><span>Crit:</span> <strong id="val-crit">20%</strong></div>
+                    <div class="stat-item"><span>Res:</span> <strong id="val-res">10%</strong></div>
+                </div>
+
+                <div class="gear-section">
+                    <div class="section-label">Neural Engravings</div>
+                    <div class="engraving-grid">
+                        <div class="gear-slot" data-slot="1">
+                            <div class="slot-inner">1</div>
+                        </div>
+                        <div class="gear-slot" data-slot="2">
+                            <div class="slot-inner">2</div>
+                        </div>
+                        <div class="gear-slot" data-slot="3">
+                            <div class="slot-inner">3</div>
+                        </div>
+                        <div class="gear-slot" data-slot="4">
+                            <div class="slot-inner">4</div>
+                        </div>
+                        <div class="gear-slot" data-slot="5">
+                            <div class="slot-inner">5</div>
+                        </div>
+                        <div class="gear-slot" data-slot="6">
+                            <div class="slot-inner">6</div>
+                        </div>
+                    </div>
+
+                    <div class="section-label">Armament Matrix</div>
+                    <div class="weapon-grid">
+                        <div class="gear-slot weapon" data-slot="w1">
+                            <div class="slot-inner">W1</div>
+                        </div>
+                        <div class="gear-slot weapon" data-slot="w2">
+                            <div class="slot-inner">W2</div>
+                        </div>
+                        <div class="gear-slot trinket" data-slot="t">
+                            <div class="slot-inner">T</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .minions-wrapper {
+        display: flex;
+        gap: 30px;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .minion-list {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        align-content: start;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .minion-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 24px;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .minion-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: var(--accent);
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .minion-card h3 {
+        font-family: 'Cinzel', serif;
+        font-size: 1.1rem;
+        color: var(--text-main);
+    }
+
+    .minion-card .lvl {
+        font-size: 0.8rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .minion-details {
+        width: 450px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-panel-inner {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .stars {
+        color: var(--accent);
+        letter-spacing: 2px;
+    }
+
+    .details-body {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .section-label {
+        font-family: 'Cinzel', serif;
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        margin: 24px 0 12px 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border-left: 3px solid var(--accent);
+        padding-left: 10px;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .stat-item span {
+        color: var(--text-dim);
+    }
+
+    .stat-item strong {
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .engraving-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .weapon-grid {
+        display: flex;
+        gap: 12px;
+    }
+
+    .gear-slot {
+        aspect-ratio: 1;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .gear-slot:hover {
+        border-color: var(--accent);
+        background: rgba(243, 156, 18, 0.05);
+    }
+
+    .slot-inner {
+        font-size: 0.7rem;
+        color: #444;
+        font-weight: 900;
+    }
+
+    .loading-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 50px;
+        opacity: 0.5;
+        font-style: italic;
+    }
+</style>

@@ -1,10 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Simonetta:ital,wght@0,400;0,900;1,400;1,900&family=Ysabeau+Office:ital,wght@0,100..1000;1,100..1000&display=swap');
+
 :root {
-    --bg-dark: #1a1a1d;
-    --bg-panel: #2d2d35;
-    --accent: #f39c12;
-    --text-main: #ecf0f1;
-    --text-dim: #95a5a6;
-    --sidebar-width: 250px;
+    --bg-dark: #080705;
+    --bg-panel: rgba(22, 19, 15, 0.95);
+    --accent: #d4af37;
+    --accent-glow: rgba(212, 175, 55, 0.2);
+    --text-main: #e0d7c6;
+    --text-dim: #8b7d6b;
+    --tile-size: 150px;
+    --border-radius: 2px;
+    /* Sharper, artisanal feel */
+
+    /* Updated Typography System per TECHNICAL_SPECS */
+    --font-title: 'Cinzel', serif;
+    --font-heading: 'Simonetta', serif;
+    --font-body: 'Ysabeau Office', sans-serif;
 }
 
 * {
@@ -14,36 +24,43 @@
 }
 
 body {
-    font-family: 'Lato', sans-serif;
+    font-family: var(--font-body);
     background-color: var(--bg-dark);
     color: var(--text-main);
     overflow: hidden;
-    /* App-like feel */
     height: 100vh;
+    line-height: 1.5;
 }
 
 #game-container {
     display: flex;
     height: 100%;
+    width: 100%;
 }
 
-/* Sidebar */
+/* Sidebar Navigation - The Artificer's Ledger */
 .sidebar {
     width: var(--sidebar-width);
-    background-color: #111;
-    border-right: 1px solid #333;
+    background: #0c0b09;
+    border-right: 2px solid #1a1814;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 40px 20px;
+    z-index: 1000;
+    flex-shrink: 0;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
 }
 
 .logo {
-    font-family: 'Cinzel', serif;
-    font-size: 1.5rem;
+    font-family: var(--font-title);
+    font-size: 1.4rem;
     color: var(--accent);
     text-align: center;
-    margin-bottom: 40px;
-    letter-spacing: 2px;
+    margin-bottom: 60px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 20px;
 }
 
 .nav-links {
@@ -52,138 +69,450 @@ body {
 }
 
 .nav-links li {
-    padding: 15px;
-    margin-bottom: 5px;
+    padding: 14px 20px;
+    margin-bottom: 8px;
     cursor: pointer;
-    border-radius: 8px;
-    transition: background 0.2s, color 0.2s;
-    font-size: 1.1rem;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+    font-family: var(--font-heading);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border-left: 2px solid transparent;
 }
 
 .nav-links li:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--accent);
+    background: rgba(212, 175, 55, 0.03);
 }
 
 .nav-links li.active {
-    background-color: var(--accent);
-    color: #111;
-    font-weight: bold;
+    color: var(--accent);
+    border-left: 2px solid var(--accent);
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
 }
 
 .player-status {
-    border-top: 1px solid #333;
-    padding-top: 20px;
+    border-top: 1px solid #1a1814;
+    padding-top: 30px;
+    font-family: var(--font-title);
+}
+
+.energy {
+    color: #a67c52;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    font-family: var(--font-body);
 }
 
 .gold {
-    color: #f1c40f;
-    font-size: 1.2rem;
-    margin-bottom: 5px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-family: var(--font-body);
 }
 
 .date {
     color: var(--text-dim);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    font-family: var(--font-body);
 }
 
-/* Main Content */
+/* Main Content Area */
 main {
     flex-grow: 1;
-    padding: 30px;
-    background: radial-gradient(circle at top right, #2c3e50 0%, var(--bg-dark) 60%);
-    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 header {
-    margin-bottom: 30px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 15px;
+    height: 80px;
+    padding: 0 50px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #1a1814;
+    z-index: 100;
 }
 
 #view-title {
-    font-family: 'Cinzel', serif;
-    font-size: 2rem;
+    font-family: var(--font-title);
+    font-size: 1.8rem;
+    letter-spacing: 4px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.placeholder-message {
-    background: var(--bg-panel);
-    padding: 40px;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px dashed var(--text-dim);
-}
-
-/* Modals */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
-}
-
-.modal-content {
-    background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
-    border: 1px solid rgba(243, 156, 18, 0.4);
-    padding: 40px;
-    border-radius: 16px;
-    width: 500px;
-    max-width: 90%;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(243, 156, 18, 0.1);
-    animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+#content-area {
+    flex-grow: 1;
     position: relative;
-}
-
-.modal-content h2 {
-    font-family: 'Cinzel', serif;
-    color: var(--accent);
-    margin-bottom: 20px;
-    border-bottom: 1px solid #444;
-    padding-bottom: 10px;
-}
-
-.modal-body {
-    margin-bottom: 30px;
-    line-height: 1.6;
-    color: #eee;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: center;
-}
-
-@keyframes modalScaleIn {
-    from {
-        transform: scale(0.9);
-        opacity: 0;
-    }
-
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
+    padding: var(--panel-gap);
+    overflow-y: auto;
 }
 
 .hidden {
     display: none !important;
 }
 
-@keyframes modalSlideIn {
-    from {
-        transform: translateY(-30px);
-        opacity: 0;
+/* Thematic Panelling */
+.panel {
+    background: var(--bg-panel);
+    border: 1px solid #2a261f;
+    padding: 30px;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.panel::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 1px solid rgba(212, 175, 55, 0.05);
+    pointer-events: none;
+}
+
+.panel-header {
+    font-family: var(--font-heading);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #332d24;
+    color: var(--accent);
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+/* Asset Visuals */
+.grid-cell {
+    position: relative;
+    background: #0d0c0a;
+}
+
+/* Biome Flat Unicolors - Base + Silhouette */
+.biome-marker.forest {
+    background: #2d5a27;
+}
+
+.biome-marker.forest .f-tree {
+    border-bottom-color: #1a3317;
+}
+
+.biome-marker.mountains {
+    background: #4a5d6e;
+}
+
+.biome-marker.mountains .m-peak {
+    border-bottom-color: #2c3e50;
+}
+
+.biome-marker.river {
+    background: #1a2a4a;
+}
+
+.biome-marker.river .r-path {
+    background: #2980b9;
+}
+
+.biome-marker.lab {
+    background: #3d3428;
+}
+
+.biome-marker.lab .lab-spire {
+    background: var(--accent);
+}
+
+.biome-marker.ocean {
+    background: #0a0a1a;
+    opacity: 1;
+}
+
+.biome-marker.ocean::after {
+    color: #1a1a2e;
+}
+
+.biome-marker.plains {
+    background: #1a1814;
+}
+
+.biome-marker {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Forest: Stylized Trees */
+.f-tree {
+    width: 0;
+    height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-bottom: 36px solid #0b120a;
+    position: absolute;
+}
+
+.f-tree:nth-child(1) {
+    top: 25%;
+    left: 25%;
+}
+
+.f-tree:nth-child(2) {
+    top: 45%;
+    left: 50%;
+    transform: scale(1.3);
+}
+
+.f-tree:nth-child(3) {
+    top: 65%;
+    left: 30%;
+    transform: scale(0.9);
+}
+
+.m-peak {
+    width: 0;
+    height: 0;
+    border-left: 45px solid transparent;
+    border-right: 45px solid transparent;
+    border-bottom: 60px solid #0d0d0f;
+    position: absolute;
+    opacity: 0.8;
+}
+
+.m-peak:nth-child(1) {
+    bottom: 15%;
+    left: 10%;
+}
+
+.m-peak:nth-child(2) {
+    bottom: 10%;
+    right: 5%;
+    transform: scale(1.4);
+    border-bottom-color: #1a252f;
+}
+
+.r-path {
+    width: 110%;
+    height: 30px;
+    background: #0a0f1a;
+    transform: rotate(-35deg);
+}
+
+.lab-spire {
+    width: 40px;
+    height: 100px;
+    background: #000;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%);
+}
+
+/* Ocean: Depth Voids */
+.biome-marker.ocean {
+    background: #050510;
+    opacity: 0.5;
+}
+
+.biome-marker.ocean::after {
+    content: '~~~';
+    font-size: 2rem;
+    color: #000;
+    letter-spacing: 6px;
+    font-family: var(--font-header);
+}
+
+/* Add a "paper" noise over tiles */
+.grid-cell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('https://www.transparenttextures.com/patterns/pinstriped-suit.png');
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+
+/* Biome Filters to compensate for missing assets */
+.cell-sprite.plains {
+    filter: sepia(0.8) saturate(0.5) brightness(0.95);
+    opacity: 0.6;
+}
+
+.cell-sprite.mountains {
+    filter: contrast(1.1) brightness(0.7);
+}
+
+.cell-sprite.ocean {
+    filter: hue-rotate(180deg) saturate(1.5) brightness(0.4);
+}
+
+.cell-sprite.lab {
+    transform: scale(1.1);
+}
+
+.fow-texture {
+    width: 100%;
+    height: 100%;
+    background: #080705;
+    background-image:
+        repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(212, 175, 55, 0.02) 10px, rgba(212, 175, 55, 0.02) 11px),
+        radial-gradient(circle at 50% 50%, #1a1814 0%, #050403 100%);
+    opacity: 0.8;
+}
+
+.player-marker-sprite {
+    position: absolute;
+    width: 60px;
+    height: 85px;
+    object-fit: contain;
+    z-index: 50;
+    /* Static per spec */
+    filter: brightness(0.2) drop-shadow(0 0 2px var(--accent));
+    /* Flat silhouette with tiny edge highlight */
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
     }
 
-    to {
-        transform: translateY(0);
-        opacity: 1;
+    50% {
+        transform: translateY(-8px);
     }
+}
+
+.item-icon-wrapper {
+    display: none;
+    /* Disabling broken image system */
+}
+
+/* Item Visual Thumbnails (Low Asset CSS) */
+.item-visual-thumbnail {
+    width: 100%;
+    height: 140px;
+    background: #0d0c0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid #1a1814;
+    position: relative;
+    overflow: hidden;
+}
+
+.iv-shape {
+    width: 40px;
+    height: 40px;
+    background: #333;
+}
+
+/* Category Silhouettes */
+.type-material .iv-shape {
+    border-radius: 8px;
+    background: #3d3428;
+}
+
+/* Rock/Log like */
+.type-component .iv-shape {
+    transform: rotate(45deg);
+    background: #4a5d6e;
+}
+
+/* Refined jewel/plate */
+.type-weapon .iv-shape {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 40% 50%);
+    background: var(--accent);
+}
+
+/* Bladed */
+.type-equipment .iv-shape {
+    clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+    background: #7f8c8d;
+}
+
+/* Armor/Clothes */
+
+/* Specific Item Tweaks */
+.itm_artificer_staff .iv-shape {
+    width: 10px;
+    height: 80px;
+}
+
+.itm_leather_pouch .iv-shape {
+    border-radius: 20% 20% 40% 40%;
+    width: 45px;
+}
+
+.item-sprite {
+    display: none;
+}
+
+.reg-sprite,
+.reg-player-sprite {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+}
+
+/* Artisan Buttons */
+.action-btn {
+    background: #1a1814;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 14px 28px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.action-btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: #000;
+}
+
+.action-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+.secondary-btn {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid #332d24;
+    padding: 10px 20px;
+    font-family: var(--font-heading);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+    color: var(--text-main);
+    border-color: var(--text-dim);
+}
+
+/* Modals - The Ritual Focus */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: grayscale(0.5);
+}
+
+.modal-content {
+    background: #0f0e0c;
+    border: 1px solid #443c2f;
+    padding: 50px;
+    width: 650px;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 1);
+    position: relative;
+    border-top: 4px solid var(--accent);
 }

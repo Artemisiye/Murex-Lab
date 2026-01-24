@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 import sys
 import os
+import random
 
 # Add project root to path so we can find _engine
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
@@ -10,6 +11,7 @@ from _engine.game_client import launch
 from modules.crafting import CraftingManager
 from modules.inventory import Inventory
 from modules.world_map import map_manager
+from modules.minions import Minion
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -23,10 +25,31 @@ crafting_system = CraftingManager(DATA_PATH)
 player_inventory = Inventory(SAVE_PATH)
 world_map = map_manager(DATA_PATH)
 
-# Initial seed for testing if empty
-if not player_inventory.items:
-    player_inventory.add_item("mat_pouch", "material", 1)
-    player_inventory.add_item("mat_knife_rusty", "material", 1)
+# Player Team (Starting Minion)
+player_minions = [
+    Minion("m_001", "Lead Artificer", star_rating=3, level=10)
+]
+
+def initialize_starting_equipment():
+    """Wipes inventory and sets up the starting gear per TECHNICAL_SPECS."""
+    player_inventory.items = {}
+    player_inventory.gold = 15
+    
+    # Gear
+    player_inventory.add_item("itm_leather_pouch", "weapon", 1, {"name": "Leather Pouch"})
+    player_inventory.add_item("itm_artificer_staff", "weapon", 1, {"name": "Staff"})
+    player_inventory.add_item("itm_iron_dagger", "weapon", 1, {"name": "Dagger"})
+    
+    # Clothes
+    player_inventory.add_item("clt_simple_shirt", "equipment", 1, {"name": "Simple Shirt"})
+    player_inventory.add_item("clt_simple_pants", "equipment", 1, {"name": "Simple Pants"})
+    player_inventory.add_item("clt_simple_shoes", "equipment", 1, {"name": "Simple Shoes"})
+    
+    player_inventory.save()
+
+# Initial seed for starting equipment if fresh save
+if not player_inventory.items and player_inventory.gold == 0:
+    initialize_starting_equipment()
 
 # --- Routes ---
 @app.route('/')
@@ -117,19 +140,19 @@ def get_valid_components(schem_id, slot_id):
 
 @app.route('/api/inventory')
 def get_inventory():
-    """Returns the full player inventory."""
+    """Returns the full player inventory and gold."""
     inv = player_inventory.get_all()
     data = []
     for key, item in inv.items():
-        name = "Unknown"
+        name = f"Unknown ({item.item_id})"
         if item.item_type == 'material':
             mat = crafting_system.materials.get(item.item_id)
-            name = mat.name if mat else "Unknown Material"
+            if mat: name = mat.name
         elif item.item_type == 'component':
             comp = crafting_system.components.get(item.item_id)
-            name = comp.name if comp else "Unknown Component"
-        elif item.item_type == 'product':
-            name = item.data.get('name', 'Finished Product')
+            if comp: name = comp.name
+        elif item.item_type in ['product', 'equipment']:
+            name = item.data.get('name', f"Item ({item.item_id})")
         
         data.append({
             "key": key,
@@ -138,7 +161,15 @@ def get_inventory():
             "quantity": item.quantity,
             "name": name
         })
-    return jsonify(data)
+    return jsonify({
+        "gold": player_inventory.gold,
+        "items": data
+    })
+
+@app.route('/api/minions')
+def get_minions():
+    """Returns the player's minion team data."""
+    return jsonify([m.to_dict() for m in player_minions])
 
 @app.route('/api/craft_item', methods=['POST'])
 def craft_item():
@@ -208,10 +239,12 @@ def get_map_data():
 
 @app.route('/api/map/move', methods=['POST'])
 def move_player():
-    """Moves player one cell in a direction (up, down, left, right)."""
+    """Moves player one cell. Movement is free per spec."""
     data = request.json
     direction = data.get('direction') # 'up', 'down', 'left', 'right'
     
+    lead_minion = player_minions[0]
+
     moves = {
         'up': (0, -1),
         'down': (0, 1),
@@ -220,13 +253,18 @@ def move_player():
     }
     
     dx, dy = moves.get(direction, (0, 0))
-    success = world_map.move_player(dx, dy)
+    success, result = world_map.move_player(dx, dy)
     
-    return jsonify({
-        "success": success, 
-        "player_pos": world_map.player_pos,
-        "current_cell": world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y']).to_dict()
-    })
+    if success:
+        # Move is successful, no energy consumed
+        return jsonify({
+            "success": True, 
+            "player_pos": world_map.player_pos,
+            "energy": lead_minion.current_energy,
+            "current_cell": world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y']).to_dict()
+        })
+    
+    return jsonify({"success": False, "message": result})
 
 @app.route('/api/map/scavenge', methods=['POST'])
 def scavenge_location():
@@ -239,6 +277,99 @@ def scavenge_location():
         player_inventory.add_item(item['id'], item_type, item['quantity'])
     
     return jsonify({"success": True, "loot": loot})
+
+@app.route('/api/map/explore', methods=['POST'])
+def explore_location():
+    """Enters the high-granularity regional map."""
+    regional_map = world_map.enter_regional_map()
+    return jsonify({
+        "success": True,
+        "region_data": regional_map.to_dict()
+    })
+
+@app.route('/api/map/region_move', methods=['POST'])
+def region_move():
+    """Moves player within the regional map."""
+    data = request.json
+    direction = data.get('direction')
+    
+    moves = {'up': (0, -1), 'down': (0, 1), 'left': (-1, 0), 'right': (1,0)}
+    dx, dy = moves.get(direction, (0, 0))
+    
+    cell = world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y'])
+    if cell and cell.regional_map:
+        success = cell.regional_map.move_player(dx, dy)
+        return jsonify({
+            "success": success,
+            "region_data": cell.regional_map.to_dict()
+        })
+    return jsonify({"success": False})
+
+@app.route('/api/map/harvest', methods=['POST'])
+def harvest_node():
+    """Harvests a node at specific coordinates in the current regional map."""
+    data = request.json
+    nx, ny = data.get('x'), data.get('y')
+    
+    cell = world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y'])
+    if not cell or not cell.regional_map:
+        return jsonify({"success": False, "message": "No area active."})
+        
+    # Security: Check if player is near the node
+    px, py = cell.regional_map.player_pos['x'], cell.regional_map.player_pos['y']
+    if abs(px - nx) > 1 or abs(py - ny) > 1:
+        return jsonify({"success": False, "message": "Too far away to harvest."})
+        
+    loot = cell.regional_map.harvest(nx, ny)
+    if loot:
+        for item_id in loot:
+            # We determine type based on prefix for now
+            itype = 'material'
+            if item_id.startswith('comp_'): itype = 'component'
+            player_inventory.add_item(item_id, itype, random.randint(1, 3))
+            
+        return jsonify({
+            "success": True, 
+            "loot": loot,
+            "region_data": cell.regional_map.to_dict()
+        })
+        
+    return jsonify({"success": False, "message": "Resource exhausted or missing."})
+
+# --- Debugging & Tools API ---
+
+@app.route('/debug')
+def debug_tools():
+    """Serves the standalone Tools Window interface."""
+    return render_template('debug.html')
+
+@app.route('/api/debug/inventory/clear', methods=['POST'])
+def debug_clear_inventory():
+    """Cheat: resets the inventory to starting equipment state."""
+    initialize_starting_equipment()
+    return jsonify({"success": True, "message": "Vault reset to initial state."})
+
+@app.route('/api/debug/backpack/clear', methods=['POST'])
+def debug_clear_backpack():
+    """Cheat: empties the backpack."""
+    # Logic to clear backpack once backpack object is fully implemented
+    # For now, if we use a separate list:
+    return jsonify({"success": True, "message": "Backpack emptied."})
+
+@app.route('/api/debug/inventory/add', methods=['POST'])
+def debug_add_item():
+    """Cheat: adds a specific item to the inventory."""
+    data = request.json
+    item_id = data.get('item_id')
+    quantity = int(data.get('quantity', 1))
+    
+    # Simple type determination
+    itype = 'material'
+    if item_id.startswith('comp_'): itype = 'component'
+    elif item_id.startswith('prod_'): itype = 'product'
+    
+    player_inventory.add_item(item_id, itype, quantity)
+    return jsonify({"success": True, "message": f"Added x{quantity} {item_id}"})
 
 if __name__ == "__main__":
     # Launch via Capsule Engine

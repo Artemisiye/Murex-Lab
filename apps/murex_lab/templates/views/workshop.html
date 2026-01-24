@@ -1,265 +1,259 @@
-<div class="station-tabs" id="station-tabs">
-    <button class="tab-btn active" data-station="station_none">🖐️ Hands</button>
-    <button class="tab-btn" data-station="station_fire_pit">🔥 Fire Pit</button>
-    <button class="tab-btn disabled" data-station="station_kiln">🏺 Kiln</button>
-    <button class="tab-btn disabled" data-station="station_smelter">🏭 Smelter</button>
-</div>
-
-<div class="workshop-container">
-    <!-- Left: Schematics List -->
-    <div class="panel list-panel">
-        <div class="panel-header">Schematics</div>
-        <ul id="schematic-list">
-            <!-- Populated via JS -->
-            <li class="loading">Loading schematics...</li>
-        </ul>
-    </div>
-
-    <!-- Center: Blueprint Area -->
-    <div class="panel blueprint-panel">
-        <div class="panel-header" id="blueprint-title">Select Schematic</div>
-        <div class="blueprint-canvas" id="blueprint-slots">
-            <!-- Slots go here -->
-            <div class="empty-state">Select a schematic to begin crafting</div>
+<div class="workshop-wrapper">
+    <!-- Station Tabs Overlay -->
+    <div class="station-control">
+        <div class="station-tabs" id="station-tabs">
+            <button class="tab-btn active" data-station="station_none">Manual Labor</button>
+            <button class="tab-btn" data-station="station_fire_pit">Fire Pit</button>
+            <button class="tab-btn disabled" data-station="station_kiln">Kiln</button>
+            <button class="tab-btn disabled" data-station="station_smelter">Smelter</button>
         </div>
     </div>
 
-    <!-- Right: Preview & Inventory -->
-    <div class="panel details-panel">
-        <div class="panel-header">Result Preview</div>
-
-        <div class="stats-box" id="preview-stats">
-            <!-- Populated via JS -->
-            <p class="dim">No active blueprint</p>
-        </div>
-
-        <button id="craft-btn" class="action-btn" disabled>Forge Item</button>
-
-        <div class="inventory-picker hidden" id="component-picker">
-            <div class="picker-header">Select Component</div>
-            <ul id="component-list">
-                <!-- Components valid for active slot go here -->
+    <div class="workshop-layout">
+        <!-- Left: Schematics List -->
+        <div class="panel list-panel">
+            <div class="panel-header">Schematic Index</div>
+            <ul id="schematic-list">
+                <!-- Populated via JS -->
+                <li class="loading">Inverting Archive...</li>
             </ul>
+        </div>
+
+        <!-- Center: Blueprint Area -->
+        <div class="panel blueprint-panel">
+            <div class="panel-header" id="blueprint-title">Blueprint Analysis</div>
+            <div class="blueprint-canvas" id="blueprint-slots">
+                <div class="empty-state">Load a schematic to begin forging phase.</div>
+            </div>
+        </div>
+
+        <!-- Right: Preview & Inventory -->
+        <div class="panel details-panel">
+            <div class="panel-header">Phase Analysis</div>
+
+            <div class="stats-box" id="preview-stats">
+                <p class="dim">Analysis offline. Blueprint required.</p>
+            </div>
+
+            <div class="action-footer">
+                <button id="craft-btn" class="action-btn" disabled>Execute Forge</button>
+            </div>
+
+            <div class="inventory-picker hidden" id="component-picker">
+                <div class="picker-header">
+                    <span>Select Component</span>
+                    <button class="close-picker"
+                        onclick="document.getElementById('component-picker').classList.add('hidden')">×</button>
+                </div>
+                <ul id="component-list"></ul>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-    .workshop-container {
+    .workshop-wrapper {
+        height: 100%;
         display: flex;
-        gap: 20px;
-        height: calc(100% - 60px);
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .station-control {
+        display: flex;
+        justify-content: center;
     }
 
     .station-tabs {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.03);
         padding: 5px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .tab-btn {
-        padding: 10px 20px;
-        background: #333;
-        border: 1px solid #444;
-        color: #999;
+        padding: 10px 24px;
+        background: transparent;
+        border: none;
+        color: var(--text-dim);
         cursor: pointer;
-        border-radius: 6px;
+        border-radius: 8px;
         font-family: 'Cinzel', serif;
-        transition: all 0.2s;
+        font-size: 0.9rem;
+        transition: all 0.3s;
     }
 
     .tab-btn:hover:not(.disabled) {
-        background: #444;
+        background: rgba(255, 255, 255, 0.05);
         color: #fff;
     }
 
     .tab-btn.active {
         background: var(--accent);
         color: #000;
-        border-color: var(--accent);
+        font-weight: 700;
     }
 
     .tab-btn.disabled {
-        opacity: 0.3;
+        opacity: 0.2;
         cursor: not-allowed;
-        filter: grayscale(1);
     }
 
-    .panel {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid #444;
-        border-radius: 8px;
+    .workshop-layout {
+        flex: 1;
+        display: flex;
+        gap: 24px;
+        overflow: hidden;
+    }
+
+    .list-panel {
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .blueprint-panel {
+        flex: 2;
+        position: relative;
         display: flex;
         flex-direction: column;
     }
 
-    .panel-header {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 10px;
-        font-weight: bold;
-        border-bottom: 1px solid #444;
-        text-align: center;
-        font-family: 'Cinzel', serif;
-    }
-
-    /* List Panel */
-    .list-panel {
+    .details-panel {
         flex: 1;
+        min-width: 320px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
     }
 
     #schematic-list {
         list-style: none;
-        padding: 10px;
+        padding: 0;
         overflow-y: auto;
     }
 
     #schematic-list li {
-        padding: 10px;
-        border-bottom: 1px solid #333;
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         cursor: pointer;
         transition: background 0.2s;
     }
 
     #schematic-list li:hover {
-        background: rgba(243, 156, 18, 0.2);
+        background: rgba(243, 156, 18, 0.08);
     }
 
     #schematic-list li.active {
-        background: var(--accent);
-        color: #111;
-        font-weight: bold;
-    }
-
-    /* Blueprint Panel (Using CSS Grid for a "Table" look for slots) */
-    .blueprint-panel {
-        flex: 2;
-        position: relative;
+        border-left: 3px solid var(--accent);
+        background: rgba(243, 156, 18, 0.05);
     }
 
     .blueprint-canvas {
-        padding: 20px;
+        flex: 1;
+        padding: 40px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 24px;
         align-items: center;
         justify-content: center;
-        height: 100%;
+        background: radial-gradient(circle, rgba(243, 156, 18, 0.03) 0%, transparent 70%);
     }
 
     .slot-node {
-        width: 300px;
-        padding: 15px;
-        background: #222;
-        border: 2px dashed #555;
-        border-radius: 6px;
+        width: 100%;
+        max-width: 400px;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
         cursor: pointer;
-        text-align: center;
-        position: relative;
+        transition: all 0.3s;
     }
 
     .slot-node:hover {
         border-color: var(--accent);
+        background: rgba(243, 156, 18, 0.03);
     }
 
     .slot-node.filled {
-        border-style: solid;
-        border-color: #2ecc71;
-        background: #2c3e50;
+        border: 1px solid var(--accent);
+        background: rgba(243, 156, 18, 0.05);
     }
 
     .slot-label {
-        font-size: 0.8rem;
-        color: #aaa;
+        font-size: 0.75rem;
+        color: var(--text-dim);
         text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
     .slot-value {
         font-size: 1.1rem;
-        font-weight: bold;
-        margin-top: 5px;
-    }
-
-    /* Right Panel */
-    .details-panel {
-        flex: 1;
-        position: relative;
+        font-weight: 700;
+        margin-top: 8px;
+        color: #eee;
     }
 
     .stats-box {
-        padding: 15px;
-        flex-grow: 1;
+        flex: 1;
+        padding: 20px;
     }
 
-    .action-btn {
-        margin: 15px;
-        padding: 15px;
-        background: var(--accent);
-        border: none;
-        font-weight: bold;
-        font-size: 1.1rem;
-        cursor: pointer;
+    .action-footer {
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .action-btn:disabled {
-        background: #555;
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
-
-    /* Component Picker Overlay */
     .inventory-picker {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: #1a1a1d;
-        border-left: 1px solid var(--accent);
+        inset: 0;
+        background: #0d0d0f;
+        border-radius: var(--radius-lg);
         display: flex;
         flex-direction: column;
-        z-index: 10;
-    }
-
-    .inventory-picker.hidden {
-        display: none;
+        z-index: 50;
     }
 
     .picker-header {
-        background: var(--accent);
-        color: #111;
-        padding: 10px;
-        font-weight: bold;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        font-family: 'Cinzel', serif;
+        color: var(--accent);
+    }
+
+    .close-picker {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 1.5rem;
+        cursor: pointer;
     }
 
     #component-list {
         list-style: none;
         overflow-y: auto;
-        flex-grow: 1;
+        flex: 1;
+        padding: 0;
     }
 
     .comp-item {
-        padding: 10px;
-        border-bottom: 1px solid #333;
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         cursor: pointer;
     }
 
     .comp-item:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
     }
 
-    .comp-name {
-        font-weight: bold;
-        color: #fff;
-    }
-
-    .comp-mat {
-        font-size: 0.8rem;
-        color: #aaa;
+    .empty-state {
+        color: var(--text-dim);
+        font-style: italic;
+        opacity: 0.5;
     }
 </style>
