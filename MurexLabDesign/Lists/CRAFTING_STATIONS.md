@@ -2,7 +2,7 @@
 
 Infrastructure items are built once and serve as permanent workstations within the Artificer's Lab.
 
-## 🏺 The Primitive Workshop (Manual Labor)
+## Primitive
 ### **Simple Fire Pit**
 *   **Cost**: [Stone + Oak Log]
 *   **Role**: Basic thermal processing. Unlocks Tallow rendering and simple Charcoal.
@@ -17,7 +17,7 @@ Infrastructure items are built once and serve as permanent workstations within t
 
 ---
 
-## 🧱 The Masonry Stage (Built Infrastructure)
+## Stone Age
 ### **Primitive Kiln**
 *   **Cost**: [Stone + Unfired Bricks + Clay Paste]
 *   **Role**: High-temperature masonry. Unlocks Fired Bricks, Pottery, and first-pass Charcoal.
@@ -32,7 +32,7 @@ Infrastructure items are built once and serve as permanent workstations within t
 
 ---
 
-## 🔥 The Industrial Core (The Smeltery)
+## Classical
 ### **Artificer's Smelter**
 *   **Cost**: [Fired Bricks + Mortar + Iron Reinforcement]
 *   **Role**: Mineral extraction. Turns Ores into Ingots.
@@ -44,7 +44,7 @@ Infrastructure items are built once and serve as permanent workstations within t
 
 ---
 
-## ⚒️ The Artificer's Sanctum (The High Lab)
+## Arcane
 ### **Iron Anvil**
 *   **Cost**: [Iron Ingots + Rough Stone Base]
 *   **Role**: Metal shaping. Unlocks complex weaponry and mechanical parts like Gears.

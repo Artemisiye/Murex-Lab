@@ -2,16 +2,15 @@ import json
 import os
 
 class InventoryItem:
-    def __init__(self, item_id, item_type, quantity=1, data=None):
+    def __init__(self, item_id, quantity=1, data=None):
         self.item_id = item_id
-        self.item_type = item_type  # 'material', 'component', 'product'
         self.quantity = quantity
-        self.data = data or {} # Custom stats for products
+        self.data = data or {} # Custom stats/instance data
 
 class Inventory:
     def __init__(self, save_path):
         self.save_path = save_path
-        self.items = {} # Maps item_id -> InventoryItem
+        self.items = {} # Maps unique_id -> InventoryItem
         self.gold = 0
         self.load()
 
@@ -21,7 +20,6 @@ class Inventory:
                 with open(self.save_path, 'r') as f:
                     raw_data = json.load(f)
                     
-                    # Support both old format (direct dict) and new format (nested)
                     if 'items' in raw_data:
                         items_data = raw_data['items']
                         self.gold = raw_data.get('gold', 0)
@@ -32,7 +30,6 @@ class Inventory:
                     for key, val in items_data.items():
                         self.items[key] = InventoryItem(
                             val['item_id'], 
-                            val['item_type'], 
                             val['quantity'],
                             val.get('data')
                         )
@@ -46,7 +43,6 @@ class Inventory:
         for key, item in self.items.items():
             items_dict[key] = {
                 "item_id": item.item_id,
-                "item_type": item.item_type,
                 "quantity": item.quantity,
                 "data": item.data
             }
@@ -70,22 +66,35 @@ class Inventory:
             return True
         return False
 
-    def add_item(self, item_id, item_type, quantity=1, data=None):
-        # Materials and basic components stack by ID
-        key = item_id if item_type not in ['product', 'equipment'] else f"{item_id}_{len(self.items)}"
+    def add_item(self, item_id, quantity=1, data=None, persistent_id=None):
+        """
+        Adds an item to inventory. 
+        If persistent_id is provided, it uses that as the key (overwriting or adding to instance).
+        If data is empty, it attempts to stack by item_id.
+        """
+        # Logic: Stackable if no custom instance data
+        is_stackable = not data
         
-        if key in self.items and item_type not in ['product', 'equipment']:
-            self.items[key].quantity += quantity
+        if is_stackable:
+            key = item_id
+            if key in self.items:
+                self.items[key].quantity += quantity
+            else:
+                self.items[key] = InventoryItem(item_id, quantity)
         else:
-            self.items[key] = InventoryItem(item_id, item_type, quantity, data)
+            # Unique instance
+            key = persistent_id or f"{item_id}_{len(self.items)}_{os.urandom(2).hex()}"
+            self.items[key] = InventoryItem(item_id, quantity, data)
+            
         self.save()
+        return key
 
-    def remove_item(self, item_id, quantity=1):
-        if item_id in self.items:
-            if self.items[item_id].quantity >= quantity:
-                self.items[item_id].quantity -= quantity
-                if self.items[item_id].quantity <= 0:
-                    del self.items[item_id]
+    def remove_item(self, unique_id, quantity=1):
+        if unique_id in self.items:
+            if self.items[unique_id].quantity >= quantity:
+                self.items[unique_id].quantity -= quantity
+                if self.items[unique_id].quantity <= 0:
+                    del self.items[unique_id]
                 self.save()
                 return True
         return False

@@ -1,7 +1,7 @@
-# 📜 Murex Lab: Narrative Directions Pool
+# Murex Lab: Narrative Directions Pool
 *Mutually exclusive end-goals, motivations, and narrative archetypes for the Artificer protagonist.*
 
-## 🏛️ Core Archetypes (The 10 Base Concepts)
+## Core Archetypes (The 10 Base Concepts)
 *Mutually exclusive end-goals and motivations for the Artificer protagonist, rooted in the Lore of Kedem.*
 
 ### 1. The Prometheus Protocol (Evolutionary Horror)
@@ -75,7 +75,7 @@
 
 ---
 
-## 🏛️ Ideologies & Philosophies
+## Ideologies & Philosophies
 *Motivations driven by abstract schools of thought.*
 
 11. **Objectivism (The Atlas Protocol)**
@@ -130,7 +130,7 @@
 
 ---
 
-## 🎬 Entertainment Tropes
+## Entertainment Tropes
 *Classic storytelling structures subverted for a crafting game.*
 
 21. **The Isekai (Truck-kun's Victim)**
@@ -160,7 +160,7 @@
 
 ---
 
-## 🌩️ Mythology Remixes
+## Mythology Remixes
 *Ancient stories serving as gameplay templates.*
 
 26. **Norse: The Ragnarok Supplier**
@@ -215,7 +215,7 @@
 
 ---
 
-## 🦅 Daedalus Specifics
+## Daedalus Specifics
 *Focused on the archetype of the Genius Craftsman.*
 
 36. **The Labyrinth (Containment)**

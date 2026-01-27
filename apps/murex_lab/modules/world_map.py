@@ -32,23 +32,34 @@ class map_cell:
         return data
 
 class map_manager:
-    def __init__(self, data_path, size=31):
+    def __init__(self, data_path, size=30):
+        """Initializes the map manager, with the player starting at the center of the map."""
         self.data_path = data_path
         self.size = size
         self.grid = {} # (x, y) -> map_cell
         self.player_pos = {"x": size // 2, "y": size // 2}
-        self.discovered_cells = {f"{self.player_pos['x']},{self.player_pos['y']}"}
+        self.discovered_cells = set()
         
         self.generate_grid()
-        self.reveal_surroundings()
+        self.reveal_surroundings(radius=2)
 
-    def reveal_surroundings(self):
+    def reveal_surroundings(self, radius=2):
+        """Reveals the cells around the player. Returns list of newly revealed cells."""
         px, py = self.player_pos["x"], self.player_pos["y"]
-        for dy in [-1, 0, 1]:
-            for dx in [-1, 0, 1]:
+        newly_revealed = []
+        
+        # Symmetrical range (-radius to +radius)
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
                 nx, ny = px + dx, py + dy
                 if 0 <= nx < self.size and 0 <= ny < self.size:
-                    self.discovered_cells.add(f"{nx},{ny}")
+                    key = f"{nx},{ny}"
+                    if key not in self.discovered_cells:
+                        self.discovered_cells.add(key)
+                        cell = self.get_cell(nx, ny)
+                        if cell:
+                            newly_revealed.append(cell.to_dict(True))
+        return newly_revealed
 
     def generate_grid(self):
         center = self.size // 2
@@ -82,19 +93,19 @@ class map_manager:
         return self.grid.get((x, y))
 
     def move_player(self, dx, dy):
-        """Moves player and returns energy cost (1). Blocks Ocean."""
+        """Moves player and returns (success, newly_revealed_cells or error_msg)."""
         new_x = self.player_pos["x"] + dx
         new_y = self.player_pos["y"] + dy
         
         if 0 <= new_x < self.size and 0 <= new_y < self.size:
             target_cell = self.get_cell(new_x, new_y)
             if target_cell and target_cell.type == "ocean":
-                return False, "ocean_blocked" # Specific key for silent block
+                return False, "ocean_blocked" 
                 
             self.player_pos["x"] = new_x
             self.player_pos["y"] = new_y
-            self.reveal_surroundings()
-            return True, 1
+            newly_revealed = self.reveal_surroundings()
+            return True, newly_revealed
         return False, "invalid_path"
 
     def enter_regional_map(self):
@@ -106,10 +117,13 @@ class map_manager:
         return cell.regional_map
 
     def get_map_data(self):
+        """Returns only the discovered cells to reduce payload size."""
         cells = []
-        for c in self.grid.values():
-            is_discovered = f"{c.x},{c.y}" in self.discovered_cells
-            cells.append(c.to_dict(is_discovered))
+        for key in self.discovered_cells:
+            x, y = map(int, key.split(','))
+            cell = self.get_cell(x, y)
+            if cell:
+                cells.append(cell.to_dict(True))
             
         return {
             "cells": cells,
@@ -117,15 +131,15 @@ class map_manager:
             "size": self.size
         }
 
-    def scavenge_current_pos(self):
-        cell = self.get_cell(self.player_pos["x"], self.player_pos["y"])
-        if not cell or cell.type == "lab":
-            return []
+    # def scavenge_current_pos(self):
+    #     cell = self.get_cell(self.player_pos["x"], self.player_pos["y"])
+    #     if not cell or cell.type == "lab":
+    #         return []
 
-        loot = []
-        for res_id in cell.resources:
-            # Simple 50% chance to find 1-3
-            if random.random() < 0.5:
-                loot.append({"id": res_id, "quantity": random.randint(1, 3)})
+    #     loot = []
+    #     for res_id in cell.resources:
+    #         # Simple 50% chance to find 1-3
+    #         if random.random() < 0.5:
+    #             loot.append({"id": res_id, "quantity": random.randint(1, 3)})
         
-        return loot
+    #     return loot

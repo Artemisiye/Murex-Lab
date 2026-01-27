@@ -516,3 +516,38 @@ header {
     position: relative;
     border-top: 4px solid var(--accent);
 }
+
+/* --- Quality of Life Animations --- */
+@keyframes ui-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
+
+.shake {
+    animation: ui-shake 0.3s ease-in-out;
+}
+
+.harvest-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #000;
+    padding: 12px 24px;
+    font-family: var(--font-title);
+    font-weight: bold;
+    z-index: 2000;
+    pointer-events: none;
+    animation: toast-float 2s forwards;
+    letter-spacing: 2px;
+}
+
+@keyframes toast-float {
+    0% { opacity: 0; transform: translate(-50%, 20px); }
+    20% { opacity: 1; transform: translate(-50%, 0); }
+    80% { opacity: 1; transform: translate(-50%, -20px); }
+    100% { opacity: 0; transform: translate(-50%, -40px); }
+}

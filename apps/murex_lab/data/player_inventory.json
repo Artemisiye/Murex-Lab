@@ -1,64 +1,99 @@
 {
     "gold": 15,
     "items": {
-        "itm_leather_pouch": {
+        "itm_leather_pouch_0_0428": {
             "item_id": "itm_leather_pouch",
-            "item_type": "weapon",
             "quantity": 1,
             "data": {
                 "name": "Leather Pouch"
             }
         },
-        "itm_artificer_staff": {
+        "itm_artificer_staff_1_373b": {
             "item_id": "itm_artificer_staff",
-            "item_type": "weapon",
             "quantity": 1,
             "data": {
                 "name": "Staff"
             }
         },
-        "itm_iron_dagger": {
+        "itm_iron_dagger_2_47e7": {
             "item_id": "itm_iron_dagger",
-            "item_type": "weapon",
             "quantity": 1,
             "data": {
                 "name": "Dagger"
             }
         },
-        "clt_simple_shirt_3": {
+        "clt_simple_shirt_3_a3a1": {
             "item_id": "clt_simple_shirt",
-            "item_type": "equipment",
             "quantity": 1,
             "data": {
                 "name": "Simple Shirt"
             }
         },
-        "clt_simple_pants_4": {
+        "clt_simple_pants_4_2270": {
             "item_id": "clt_simple_pants",
-            "item_type": "equipment",
             "quantity": 1,
             "data": {
                 "name": "Simple Pants"
             }
         },
-        "clt_simple_shoes_5": {
+        "clt_simple_shoes_5_65d7": {
             "item_id": "clt_simple_shoes",
-            "item_type": "equipment",
             "quantity": 1,
             "data": {
                 "name": "Simple Shoes"
             }
         },
-        "mat_oak_log": {
-            "item_id": "mat_oak_log",
-            "item_type": "material",
-            "quantity": 4,
+        "rough_stone": {
+            "item_id": "rough_stone",
+            "quantity": 32,
             "data": {}
         },
-        "mat_tree_bark": {
-            "item_id": "mat_tree_bark",
-            "item_type": "material",
-            "quantity": 4,
+        "oak_log": {
+            "item_id": "oak_log",
+            "quantity": 3,
+            "data": {}
+        },
+        "stone_axe_9_548b": {
+            "item_id": "stone_axe",
+            "quantity": 1,
+            "data": {
+                "stats": {
+                    "weight": 5.0,
+                    "strength": 5
+                },
+                "name": "Stone Axe"
+            }
+        },
+        "cordage_10_d9b1": {
+            "item_id": "cordage",
+            "quantity": 1,
+            "data": {
+                "stats": {
+                    "strength": 1.0,
+                    "weight": 0.1
+                },
+                "name": "Fiber Cordage"
+            }
+        },
+        "stone_pickaxe_10_4225": {
+            "item_id": "stone_pickaxe",
+            "quantity": 1,
+            "data": {
+                "stats": {
+                    "weight": 5.0,
+                    "strength": 5
+                },
+                "name": "Stone Pickaxe"
+            }
+        },
+        "iron_ore": {
+            "item_id": "iron_ore",
+            "quantity": 3,
+            "data": {}
+        },
+        "flint_shard": {
+            "item_id": "flint_shard",
+            "quantity": 13,
             "data": {}
         }
     }

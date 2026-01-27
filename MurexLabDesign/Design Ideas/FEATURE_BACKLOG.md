@@ -1,7 +1,7 @@
 # 📜 Murex Lab: Feature Backlog & Ideas Pool
 *A comprehensive list of potential mechanics, systems, and minigames sorted by category.*
 
-## ⚒️ Crafting & Workshop (The Core)
+## Crafting & Workshop (The Core)
 1.  **Component Assembly**: Weapons are made of parts (Blade, Hilt, Pommel). Each part has stats.
 2.  **Material Properties**: 50+ materials (Copper, Mithril, Adamamtine, Bone, Starlight Glass) with unique affinities.
 3.  **Constraint Puzzles**: Requests like "Make a hammer < 5kg that deals Fire DMG".
@@ -13,7 +13,7 @@
 9.  **Storage Tetris**: Managing limited inventory space (Diablo-style grid?).
 10. **Blueprint Research**: Spending "Inspiration" to unlock new item types.
 
-## 🌍 Exploration & Logistics
+## Exploration & Logistics
 11. **Hex-Grid Map**: A procedural map of the local continent.
 12. **Nodes & Biomes**: Forest, Mountain, Swamp, Ruin biomes with specific drop tables.
 13. **Minion Squads**: Recruiting NPCs (Mercenaries, Golems) to auto-gather.
@@ -25,7 +25,7 @@
 19. **Teleportation Circles**: Unlocking fast-travel hubs for instant resource transfer.
 20. **Rival Guilds**: AI competitors who steal nodes if you are too slow.
 
-## ⚔️ Combat & Danger
+## Combat & Danger
 21. **Turn-Based Defense**: When the lab/caravan is attacked, enter a FF-style turn-based battle.
 22. **Auto-Battler**: You equip the minions; they fight automatically based on your build quality.
 23. **Tower Defense**: Building static defenses (Turrets, Traps) around the lab.
@@ -33,7 +33,7 @@
 25. **Wounds & Durability**: Minions get injured and need "Healing Potions" (which you craft).
 26. **Corruption**: Crafting with "Void" materials increases local corruption, spawning harder enemies.
 
-## 💰 Economy & Diplomacy
+## Economy & Diplomacy
 27. **Client Reputation**: Fulfilling orders for "Zeus's Temple" makes "Hades's Undercity" hate you.
 28. **Market Fluctuations**: "Iron shortages" double the price of ore for a week.
 29. **Auction House**: Bidding on rare artifacts against NPC rivals.
@@ -41,7 +41,7 @@
 31. **Monopoly**: Buying out local mines to control the price of specific resources.
 32. **Haggling Minigame**: Active negotiation to raise sell prices.
 
-## 📜 Narrative & Quests
+## Narrative & Quests
 33. **The Great Work**: The main quest—crafting the Ultimate Item (Philosopher's Stone).
 34. **Hero Arcs**: Specific named NPCs who return with evolving requests as they level up.
 35. **Lore Books**: Finding pages of the "Kedem Codex" in ruins (unlocks tech).
@@ -49,7 +49,7 @@
 37. **The Pantheon's Favor**: Dedicating a masterpiece to a God (Zeus/Odin) for a blessing.
 38. **Sabotage**: Paying spies to disrupt rival workshops.
 
-## 🧩 Metagame & Systems
+## Metagame & Systems
 39. **Skill Tree**: "Metallurgy", "Botany", "Thaumaturgy" skill lines.
 40. **Achievement Museum**: Displaying your best creations in a gallery.
 41. **New Game+**: Resetting with a permanent "Legacy Perk" (e.g., "Master Smith").

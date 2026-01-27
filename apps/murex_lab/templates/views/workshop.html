@@ -10,33 +10,33 @@
     </div>
 
     <div class="workshop-layout">
-        <!-- Left: Schematics List -->
+        <!-- Left: Blueprints List -->
         <div class="panel list-panel">
-            <div class="panel-header">Schematic Index</div>
-            <ul id="schematic-list">
+            <div class="panel-header">Blueprints</div>
+            <ul id="blueprint-list">
                 <!-- Populated via JS -->
-                <li class="loading">Inverting Archive...</li>
+                <li class="loading">Loading...</li>
             </ul>
         </div>
 
         <!-- Center: Blueprint Area -->
         <div class="panel blueprint-panel">
-            <div class="panel-header" id="blueprint-title">Blueprint Analysis</div>
+            <div class="panel-header" id="blueprint-title">Components</div>
             <div class="blueprint-canvas" id="blueprint-slots">
-                <div class="empty-state">Load a schematic to begin forging phase.</div>
+                <div class="empty-state">Load a blueprint to begin crafting.</div>
             </div>
         </div>
 
         <!-- Right: Preview & Inventory -->
         <div class="panel details-panel">
-            <div class="panel-header">Phase Analysis</div>
+            <div class="panel-header">Select Component</div>
 
             <div class="stats-box" id="preview-stats">
-                <p class="dim">Analysis offline. Blueprint required.</p>
+                <p class="dim">Select a component to begin crafting.</p>
             </div>
 
             <div class="action-footer">
-                <button id="craft-btn" class="action-btn" disabled>Execute Forge</button>
+                <button id="craft-btn" class="action-btn" disabled>Craft Item</button>
             </div>
 
             <div class="inventory-picker hidden" id="component-picker">
@@ -128,24 +128,24 @@
         flex-direction: column;
     }
 
-    #schematic-list {
+    #blueprint-list {
         list-style: none;
         padding: 0;
         overflow-y: auto;
     }
 
-    #schematic-list li {
+    #blueprint-list li {
         padding: 15px 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         cursor: pointer;
         transition: background 0.2s;
     }
 
-    #schematic-list li:hover {
+    #blueprint-list li:hover {
         background: rgba(243, 156, 18, 0.08);
     }
 
-    #schematic-list li.active {
+    #blueprint-list li.active {
         border-left: 3px solid var(--accent);
         background: rgba(243, 156, 18, 0.05);
     }

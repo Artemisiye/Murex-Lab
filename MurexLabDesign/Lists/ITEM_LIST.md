@@ -2,7 +2,7 @@
 
 This list contains all materials, intermediate products, and final crafted items in the game. Categories represent the functional domain or civilization branch.
 
-## 🌿 The Wilds (Gatherable / Raw)
+## Gatherable / Raw
 1.  **Oak Log**: Raw wood from forests.
 2.  **Rough Stone**: Loose rock from hills.
 3.  **Plant Fibers**: Raw vegetation from meadows.
@@ -23,7 +23,7 @@ This list contains all materials, intermediate products, and final crafted items
 17. **Bitter Herbs**: Medicinal/Alchemical base.
 18. **Sea Salt**: Found in dry coastal cells.
 
-## 🏺 The Workshop & Infrastructure (Fabricated / Processed)
+## Fabricated / Processed
 19. **Cordage**: Braided plant fibers.
 20. **Timber**: Squared wood beams.
 21. **Clay Paste**: Moisturized clay.
@@ -41,7 +41,7 @@ This list contains all materials, intermediate products, and final crafted items
 33. **Ceramic Jar**: Sealed vessel for fluids.
 34. **Woven Fabric**: Loom-processed fibers.
 
-## ⚒️ Metals & Alloys (The Forge)
+## Metals & Alloys
 34. **Copper Ingot**: Pure copper.
 35. **Tin Ingot**: Pure tin.
 36. **Bronze Ingot**: Copper + Tin alloy.
@@ -49,7 +49,7 @@ This list contains all materials, intermediate products, and final crafted items
 38. **Steel Ingot**: Iron + Carbon charcoal.
 39. **Quicksilver**: Extracted from Cinnabar.
 
-## 🛠️ Tools & Utility (Personal Equipment)
+## Tools & Utility
 40. **Wooden Bucket**: For carrying water/mud.
 41. **Stone Axe**: For logs/bark.
 42. **Stone Pickaxe**: For stone/ore.
@@ -62,7 +62,7 @@ This list contains all materials, intermediate products, and final crafted items
 49. **Whetstone**: Grit stone for sharpening.
 50. **Waterskin**: Portable hydration.
 
-## ⚔️ Combat & Protection (The Artificer's Arsenal)
+## Combat & Protection
 51. **Bronze Spear**: Early metal reach weapon.
 52. **Iron Sword**: Standard blade.
 53. **Steel Mace**: Heavy impact weapon.
@@ -71,7 +71,7 @@ This list contains all materials, intermediate products, and final crafted items
 56. **Quilted Armor**: Multi-layered fabric.
 57. **Leather Vest**: Hardened cured skin.
 
-## 🧪 Artificery & Artifacts (The Peak)
+## Artificery & Artifacts
 58. **Nullstone Dust**: Extracted from the fog.
 59. **Null-Lantern**: Permanent light source.
 60. **Filter Mask**: Protection from fog-lung.
@@ -81,7 +81,7 @@ This list contains all materials, intermediate products, and final crafted items
 64. **Abacus**: Timber + Beads (For resource calculation).
 65. **Vital Poultice**: Herb + Tallow (Healing).
 
-## 🍲 Sustenance & Preservation
+## Sustenance & Preservation
 66. **River Water**: Raw hydration.
 67. **Dried Meat**: Meat + Salt + Smoke (High shelf life).
 68. **Salted Fish**: Fish + Salt.

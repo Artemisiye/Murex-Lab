@@ -1,8 +1,7 @@
-# Murex Lab: Branching Schematics (Research & Provenance)
+# Murex Lab: Branching Blueprints 
+Every item in Murex Lab has a clear lineage. This Blueprint list traces items back to their base gathering requirements.
 
-Every item in Murex Lab has a clear lineage. This schematic list traces items back to their base gathering requirements.
-
-## 🌳 Branch A: The Hand & The Hearth (Gathering Bases)
+## Branch A: The Hand & The Hearth (Gathering Bases)
 *   **Cordage**: [Plant Fibers] -> Manually braided.
 *   **Wooden Bucket**: [Oak Log + Cordage] -> **Unlocks Water Collection**.
 *   **Stone Axe**: [Rough Stone + Oak Log + Cordage] -> **Unlocks Timber/Bark**.
@@ -10,7 +9,7 @@ Every item in Murex Lab has a clear lineage. This schematic list traces items ba
 *   **Stone Shovel**: [Rough Stone + Oak Log + Cordage] -> **Unlocks Clay/Sand**.
 *   **Flint Knife**: [Flint Shard + Oak Log + Cordage] -> **Unlocks Hides/Herbs**.
 
-## 🧱 Branch B: The Shaper’s Fire (Infrastructure)
+## Branch B: The Shaper’s Fire (Infrastructure)
 *   **Timber**: [Oak Log + Stone Axe] -> Squared wood for construction.
 *   **Clay Paste**: [Raw Clay + River Water] -> Base for masonry.
 *   **Brick Mold**: [Timber] -> Reusable tool for forming bricks.
@@ -20,14 +19,14 @@ Every item in Murex Lab has a clear lineage. This schematic list traces items ba
 *   **Pottery Bowl**: [Clay Paste + Primitive Kiln] -> Fluid storage.
 *   **Ceramic Jar**: [Clay Paste + Resin + Primitive Kiln] -> Air-tight storage.
 
-## 🔥 Branch C: The Thermal Threshold (Pyrotechnics)
+## Branch C: The Thermal Threshold (Pyrotechnics)
 *   **Charcoal**: [Oak Log + Primitive Kiln] -> High-carbon fuel.
 *   **Animal Tallow**: [Animal Fat + Simple Fire Pit] -> For lighting/lube.
 *   **Glass Frit**: [Sand + Crushed Limestone + Smelter] -> Raw material for glass.
 *   **Clear Glass**: [Glass Frit + Smelter] -> Used for optics and jars.
 *   **Mortar**: [Crushed Limestone + Sand + River Water] -> For building stone structures.
 
-## � Branch D: The Weaver’s Path (Textiles & Utility)
+## Branch D: The Weaver’s Path (Textiles & Utility)
 *   **Dried Skin**: [Raw Hide + Drying Rack Station] -> Moisture removal.
 *   **Cured Leather**: [Dried Skin + Tree Bark + River Water + Tannery Vat] -> Softened leather.
 *   **Woven Fabric**: [Plant Fibers + Simple Loom Station] -> Clothing/gear base.
@@ -35,20 +34,20 @@ Every item in Murex Lab has a clear lineage. This schematic list traces items ba
 *   **Tanned Backpack**: [Woven Fabric + Cured Leather + Cordage + Needle] -> Storage expansion.
 *   **Waterskin**: [Cured Leather + Tree Resin] -> Portable water.
 
-## ⚒️ Branch E: The Metalwarden (Metallurgy)
+## Branch E: The Metalwarden (Metallurgy)
 *   **Copper Ingot**: [Native Copper + Charcoal + Smelter] -> Early conductive metal.
 *   **Iron Ingot**: [Iron Ore + Charcoal + Smelter] -> Core structural metal.
 *   **Bronze Ingot**: [Copper Ingot + Tin Ingot + Smelter] -> High-durability alloy.
 *   **Steel Ingot**: [Iron Ingot + Charcoal + Metallurgy Bellows + Smelter] -> Premium carbon-iron.
 *   **Quicksilver (Mercury)**: [Cinnabar Ore + Distillation Still] -> Volatile liquid metal.
 
-## ⚔️ Branch F: The Artificer’s Arsenal (Combat & Defense)
+## Branch F: The Artificer’s Arsenal (Combat & Defense)
 *   **Bronze Spear**: [Bronze Ingot + Timber + Cordage + Anvil] -> Long-range piercer.
 *   **Iron Sword**: [Iron Ingot + Cured Leather + Iron Ingot + Anvil] -> Standard blade.
 *   **Round Shield**: [Timber + Cured Leather + Bronze Ingot] -> Defense.
 *   **Oil Lamp**: [Pottery Bowl + Animal Tallow + Cordage] -> Dynamic light.
 
-## 🌀 Branch G: The High Lab (Artificery & Fog-Tech)
+## Branch G: The High Lab (Artificery & Fog-Tech)
 *   **Null-Lantern**: [Ceramic Jar + Copper Ingot + Nullstone Dust] -> Permanent light.
 *   **Focusing Lens**: [Clear Glass + Whetstone] -> Optical component.
 *   **Filter Mask**: [Woven Fabric + Charcoal + Cured Leather] -> Fog protection.

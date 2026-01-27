@@ -8,7 +8,7 @@
 
     <!-- HUD Overlay -->
     <div class="map-hud">
-        <!-- Floating Info: Right Side as requested -->
+        <!-- Floating Info: Right Side -->
         <div class="hud-panel region-info">
             <div class="panel-header">Location Details</div>
             <div id="location-info">
@@ -35,38 +35,6 @@
             <div class="nav-hint">WASD / Arrow Keys</div>
         </div>
     </div>
-
-    <!-- Area Exploration View (Overlay) -->
-    <div id="regional-overlay" class="area-overlay hidden">
-        <div class="area-window">
-            <div class="area-header">
-                <div class="area-title">Exploring Area</div>
-                <button class="return-btn" onclick="closeRegionalMap()">Return to Map</button>
-            </div>
-
-            <div class="area-content">
-                <div class="grid-section">
-                    <div class="regional-grid" id="regional-grid"></div>
-                </div>
-
-                <div class="side-section">
-                    <div class="side-panel actions-panel">
-                        <div class="side-header">Interact</div>
-                        <div id="context-actions" class="action-list">
-                            <!-- Actions injected here -->
-                        </div>
-                    </div>
-
-                    <div class="side-panel info-panel">
-                        <div class="side-header">Area Intel</div>
-                        <div class="intel-content">
-                            <p class="hint">Move near objects to interact with them.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <style>
@@ -84,17 +52,20 @@
     .map-underlay {
         position: absolute;
         inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        overflow: hidden;
     }
 
     .grid-container {
-        display: grid;
-        gap: 8px;
-        padding: 1200px;
-        /* Large padding for pan headroom */
+        position: absolute;
+        width: 1950px;
+        /* 13 * 150px */
+        height: 1950px;
+        left: 50%;
+        top: 50%;
+        margin-left: -975px;
+        margin-top: -975px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-sizing: border-box;
     }
 
     /* HUD */
@@ -128,20 +99,23 @@
 
     /* Cells */
     .grid-cell {
+        position: absolute;
         width: 150px;
         height: 150px;
         background: #0d0c0a;
-        border: none;
+        border: 1px solid #1a1814;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 2.2rem;
-        transition: all 0.2s;
-        position: relative;
+        transition: opacity 0.3s;
+        box-shadow: none !important;
+        box-sizing: border-box;
     }
 
     .grid-cell.lab {
         outline: 2px solid var(--accent);
+        outline-offset: -2px;
         z-index: 2;
     }
 
@@ -150,153 +124,34 @@
         opacity: 0.2;
     }
 
-    .player-marker {
-        font-size: 2.8rem;
+    .player-marker-sprite {
+        position: absolute;
+        width: 80px;
+        height: 80px;
         filter: drop-shadow(0 0 10px var(--accent));
         z-index: 100;
+        pointer-events: none;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        transform-origin: bottom center;
+        transition: filter 0.3s;
     }
 
-    /* Exploration Overlay */
-    .area-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
+    .player-marker-sprite.walking {
+        animation: player-step 0.3s ease-in-out;
     }
 
-    .area-window {
-        width: 1280px;
-        height: 800px;
-        background: #0c0b09;
-        border: 1px solid #332d24;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 0 100px #000;
-    }
+    @keyframes player-step {
 
-    .area-header {
-        padding: 20px 40px;
-        border-bottom: 2px solid #221e18;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+        0%,
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+        }
 
-    .area-title {
-        font-family: 'Cinzel', serif;
-        font-size: 1.5rem;
-        color: var(--accent);
-        letter-spacing: 2px;
-    }
-
-    .return-btn {
-        background: #1a1814;
-        color: #fff;
-        border: 1px solid #443c2f;
-        padding: 8px 16px;
-        font-family: 'Cinzel', serif;
-        cursor: pointer;
-    }
-
-    .return-btn:hover {
-        background: var(--accent);
-        color: #000;
-    }
-
-    .area-content {
-        flex: 1;
-        display: flex;
-        padding: 40px;
-        gap: 40px;
-    }
-
-    .grid-section {
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        height: 100%;
-    }
-
-    .regional-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 120px);
-        grid-template-rows: repeat(5, 120px);
-        gap: 15px;
-    }
-
-    .reg-cell {
-        background: #080705;
-        border: 1px solid #1a1814;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-    }
-
-    .reg-cell.player {
-        border: 2px solid var(--accent);
-        background: #151310;
-    }
-
-    .side-section {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 30px;
-    }
-
-    .side-panel {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid #221e18;
-        padding: 25px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .actions-panel {
-        flex: 1;
-        justify-content: flex-end;
-    }
-
-    .info-panel {
-        flex: 0 0 200px;
-    }
-
-    .side-header {
-        font-family: 'Cinzel', serif;
-        color: var(--text-dim);
-        margin-bottom: 20px;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-        border-bottom: 1px solid #221e18;
-        padding-bottom: 10px;
-    }
-
-    .action-list {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .context-btn {
-        background: #1a1814;
-        border: 1px solid var(--accent);
-        color: var(--accent);
-        padding: 20px;
-        font-family: 'Cinzel', serif;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .context-btn:hover {
-        background: var(--accent);
-        color: #000;
+        50% {
+            transform: translate(-50%, -65%) scale(1.15);
+        }
     }
 
     .section-label {
@@ -319,12 +174,6 @@
         padding: 4px 10px;
         color: var(--text-dim);
         font-size: 0.8rem;
-    }
-
-    .hint {
-        font-size: 0.85rem;
-        color: #555;
-        font-style: italic;
     }
 
     .coords {
@@ -367,5 +216,6 @@
         color: #444;
         font-family: 'Cinzel', serif;
         text-align: center;
+        pointer-events: none;
     }
 </style>

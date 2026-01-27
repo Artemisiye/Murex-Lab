@@ -1,13 +1,12 @@
 [
     {
-        "id": "schem_cordage",
+        "id": "bp_cordage",
         "name": "Fiber Cordage",
-        "type": "Component",
         "station_id": "station_none",
-        "output_id": "mat_cordage",
-        "output_type": "material",
+        "output_id": "cordage",
         "tags": [
-            "Item.Class.Component.Binding"
+            "Item.Class.Component.Binding",
+            "Item.Property.Branch.Tailoring"
         ],
         "slots": [
             {
@@ -23,12 +22,13 @@
         }
     },
     {
-        "id": "schem_wooden_bucket",
+        "id": "bp_wooden_bucket",
         "name": "Wooden Bucket",
-        "type": "Tool",
         "station_id": "station_none",
+        "output_id": "wooden_bucket",
         "tags": [
-            "Item.Class.Tool.Bucket"
+            "Item.Class.Tool.Bucket",
+            "Item.Property.Branch.Carpentry"
         ],
         "slots": [
             {
@@ -48,12 +48,13 @@
         ]
     },
     {
-        "id": "schem_stone_axe",
+        "id": "bp_stone_axe",
         "name": "Stone Axe",
-        "type": "Tool",
         "station_id": "station_none",
+        "output_id": "stone_axe",
         "tags": [
-            "Item.Class.Tool.Axe"
+            "Item.Class.Tool.Axe",
+            "Item.Property.Branch.Masonry"
         ],
         "slots": [
             {
@@ -80,12 +81,46 @@
         ]
     },
     {
-        "id": "schem_timber",
-        "name": "Timber Processing",
-        "type": "Processing",
+        "id": "bp_stone_pickaxe",
+        "name": "Stone Pickaxe",
         "station_id": "station_none",
-        "output_id": "mat_timber",
-        "output_type": "material",
+        "output_id": "stone_pickaxe",
+        "tags": [
+            "Item.Class.Tool.Pickaxe",
+            "Item.Property.Branch.Masonry"
+        ],
+        "slots": [
+            {
+                "id": "slot_head",
+                "label": "Stone Head",
+                "required_tags": [
+                    "Item.Class.Material.Stone"
+                ]
+            },
+            {
+                "id": "slot_handle",
+                "label": "Wood Handle",
+                "required_tags": [
+                    "Item.Class.Material.Wood"
+                ]
+            },
+            {
+                "id": "slot_binding",
+                "label": "Binding",
+                "required_tags": [
+                    "Item.Class.Component.Binding"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "bp_timber",
+        "name": "Timber Processing",
+        "station_id": "station_none",
+        "output_id": "timber",
+        "tags": [
+            "Item.Property.Branch.Carpentry"
+        ],
         "slots": [
             {
                 "id": "slot_log",
@@ -105,12 +140,13 @@
         ]
     },
     {
-        "id": "schem_clay_paste",
+        "id": "bp_clay_paste",
         "name": "Clay Paste",
-        "type": "Processing",
         "station_id": "station_none",
-        "output_id": "mat_clay_paste",
-        "output_type": "material",
+        "output_id": "clay_paste",
+        "tags": [
+            "Item.Property.Branch.Masonry"
+        ],
         "slots": [
             {
                 "id": "slot_clay",
@@ -123,60 +159,67 @@
                 "id": "slot_water",
                 "label": "River Water",
                 "required_tags": [
-                    "Item.Class.Material.Liquid.Water"
+                    "Item.Class.Material.Liquid"
                 ]
             }
         ]
     },
     {
-        "id": "schem_brick_mold",
+        "id": "bp_brick_mold",
         "name": "Wooden Brick Mold",
-        "type": "Tool",
         "station_id": "station_none",
-        "output_id": "mat_brick_mold",
-        "output_type": "material",
+        "output_id": "brick_mold",
+        "tags": [
+            "Item.Class.Tool.Masonry",
+            "Item.Property.Branch.Masonry"
+        ],
         "slots": [
             {
                 "id": "slot_wood",
                 "label": "Timber",
                 "required_tags": [
-                    "Item.Class.Material.Wood.Timber"
+                    "Item.Class.Material.Wood",
+                    "Item.Trait.Refined"
                 ]
             }
         ]
     },
     {
-        "id": "schem_unfired_brick",
+        "id": "bp_unfired_brick",
         "name": "Molding Bricks",
-        "type": "Processing",
         "station_id": "station_none",
-        "output_id": "mat_unfired_brick",
-        "output_type": "material",
+        "output_id": "unfired_brick",
+        "tags": [
+            "Item.Property.Branch.Masonry"
+        ],
         "slots": [
             {
                 "id": "slot_paste",
                 "label": "Clay Paste",
                 "required_tags": [
-                    "Item.Class.Material.Clay.Paste"
+                    "Item.Class.Material.Clay",
+                    "Item.Property.Form.Paste"
                 ]
             },
             {
                 "id": "slot_mold",
                 "label": "Brick Mold",
                 "required_tags": [
-                    "Item.Class.Tool.Masonry.Mold"
+                    "Item.Class.Tool.Masonry"
                 ],
                 "catalyst": true
             }
         ]
     },
     {
-        "id": "schem_tallow",
+        "id": "bp_tallow",
         "name": "Render Tallow",
-        "type": "Processing",
         "station_id": "station_fire_pit",
-        "output_id": "mat_tallow",
-        "output_type": "material",
+        "output_id": "tallow",
+        "tags": [
+            "Item.Trait.Fuel",
+            "Item.Property.Branch.Alchemy"
+        ],
         "slots": [
             {
                 "id": "slot_fat",
@@ -188,12 +231,14 @@
         ]
     },
     {
-        "id": "schem_charcoal",
+        "id": "bp_charcoal",
         "name": "Pit Charcoal",
-        "type": "Fuel",
         "station_id": "station_fire_pit",
-        "output_id": "mat_charcoal",
-        "output_type": "material",
+        "output_id": "charcoal",
+        "tags": [
+            "Item.Trait.Fuel",
+            "Item.Property.Branch.Metallurgy"
+        ],
         "slots": [
             {
                 "id": "slot_wood",

@@ -124,5 +124,5 @@ Voyages are the source of "The Wilds" tier items (see `ITEM_LIST.md`).
 
 ---
 
-## 📚 Designer Notes
+## Designer Notes
 The depth of Summoners War comes from the **friction** of the rune system—thousands of permutations that make every player's "Minion" unique. In Murex Lab, we replicate this by making Engraving crafting, "Auto-Farm Logic," and **Roster Breadth** (via Locking mechanics) the primary late-game loops. This allows the player to feel like an *Engineer* optimizing a large-scale war machine.

@@ -1,0 +1,498 @@
+[
+    {
+        "id": "oak_log",
+        "name": "Oak Log",
+        "tags": [
+            "Item.Class.Material.Wood",
+            "Item.Property.Branch.Carpentry",
+            "Item.Trait.Logs"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "rough_stone",
+        "name": "Rough Stone",
+        "tags": [
+            "Item.Class.Material.Stone",
+            "Item.Property.Branch.Masonry"
+        ],
+        "stats": {
+            "weight": 3.0
+        }
+    },
+    {
+        "id": "plant_fibers",
+        "name": "Plant Fibers",
+        "tags": [
+            "Item.Class.Material.Fiber",
+            "Item.Property.Branch.Tailoring"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
+        "id": "raw_clay",
+        "name": "Raw Clay",
+        "tags": [
+            "Item.Class.Material.Clay",
+            "Item.Property.Branch.Masonry"
+        ],
+        "stats": {
+            "weight": 1.5
+        }
+    },
+    {
+        "id": "flint_shard",
+        "name": "Flint Shard",
+        "tags": [
+            "Item.Class.Material.Stone",
+            "Item.Property.Branch.Masonry",
+            "Item.Trait.Sharp"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "limestone",
+        "name": "Limestone",
+        "tags": [
+            "Item.Class.Material.Stone",
+            "Item.Property.Branch.Masonry"
+        ],
+        "stats": {
+            "weight": 2.5
+        }
+    },
+    {
+        "id": "raw_hide",
+        "name": "Raw Hide",
+        "tags": [
+            "Item.Class.Material.Hide",
+            "Item.Property.Branch.Tailoring"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "animal_fat",
+        "name": "Animal Fat",
+        "tags": [
+            "Item.Class.Material.AnimalProduct",
+            "Item.Property.Branch.Alchemy",
+            "Item.Trait.Fat"
+        ],
+        "stats": {
+            "weight": 0.2
+        }
+    },
+    {
+        "id": "tree_bark",
+        "name": "Tree Bark",
+        "tags": [
+            "Item.Class.Material.PlantProduct",
+            "Item.Property.Branch.Alchemy",
+            "Item.Trait.Tannin"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
+        "id": "cinnabar_ore",
+        "name": "Cinnabar Ore",
+        "tags": [
+            "Item.Class.Material.Ore",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Elemental.Mercury"
+        ],
+        "stats": {
+            "weight": 1.2
+        }
+    },
+    {
+        "id": "native_copper",
+        "name": "Native Copper",
+        "tags": [
+            "Item.Class.Material.Ore",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Elemental.Copper"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "iron_ore",
+        "name": "Iron Ore",
+        "tags": [
+            "Item.Class.Material.Ore",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Elemental.Iron"
+        ],
+        "stats": {
+            "weight": 2.5
+        }
+    },
+    {
+        "id": "tin_ore",
+        "name": "Tin Ore",
+        "tags": [
+            "Item.Class.Material.Ore",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Elemental.Tin"
+        ],
+        "stats": {
+            "weight": 2.2
+        }
+    },
+    {
+        "id": "sand",
+        "name": "Sand",
+        "tags": [
+            "Item.Class.Material.Silica",
+            "Item.Property.Branch.Alchemy"
+        ],
+        "stats": {
+            "weight": 1.0
+        }
+    },
+    {
+        "id": "wild_seeds",
+        "name": "Wild Seeds",
+        "tags": [
+            "Item.Class.Material.PlantProduct",
+            "Item.Property.Branch.Agriculture",
+            "Item.Trait.Seed"
+        ],
+        "stats": {
+            "weight": 0.05
+        }
+    },
+    {
+        "id": "bitter_herbs",
+        "name": "Bitter Herbs",
+        "tags": [
+            "Item.Class.Material.PlantProduct",
+            "Item.Property.Branch.Alchemy",
+            "Item.Trait.Herb"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
+        "id": "sea_salt",
+        "name": "Sea Salt",
+        "tags": [
+            "Item.Class.Material.Mineral",
+            "Item.Property.Branch.Alchemy"
+        ],
+        "stats": {
+            "weight": 0.1
+        }
+    },
+    {
+        "id": "river_water",
+        "name": "River Water",
+        "tags": [
+            "Item.Class.Material.Liquid",
+            "Item.Property.Elemental.Water"
+        ],
+        "stats": {
+            "weight": 1.0
+        }
+    },
+    {
+        "id": "cordage",
+        "name": "Cordage",
+        "tags": [
+            "Item.Class.Component.Binding",
+            "Item.Property.Branch.Tailoring",
+            "Item.Trait.Refined"
+        ],
+        "stats": {
+            "strength": 5
+        }
+    },
+    {
+        "id": "timber",
+        "name": "Timber",
+        "tags": [
+            "Item.Class.Material.Wood",
+            "Item.Property.Branch.Carpentry",
+            "Item.Trait.Refined"
+        ],
+        "stats": {
+            "weight": 1.5
+        }
+    },
+    {
+        "id": "clay_paste",
+        "name": "Clay Paste",
+        "tags": [
+            "Item.Class.Material.Clay",
+            "Item.Property.Branch.Masonry",
+            "Item.Property.Form.Paste",
+            "Item.Trait.Wet"
+        ],
+        "stats": {
+            "weight": 1.2
+        }
+    },
+    {
+        "id": "unfired_brick",
+        "name": "Unfired Brick",
+        "tags": [
+            "Item.Class.Material.Brick",
+            "Item.Property.Branch.Masonry",
+            "Item.Trait.Unfired"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "fired_brick",
+        "name": "Fired Brick",
+        "tags": [
+            "Item.Class.Material.Brick",
+            "Item.Property.Branch.Masonry",
+            "Item.Trait.Refined",
+            "Item.Trait.FireResistant"
+        ],
+        "stats": {
+            "weight": 2.0
+        }
+    },
+    {
+        "id": "charcoal",
+        "name": "Charcoal",
+        "tags": [
+            "Item.Class.Material.Fuel",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Trait.Combustible"
+        ],
+        "stats": {
+            "burn_temp": 800
+        }
+    },
+    {
+        "id": "tallow",
+        "name": "Animal Tallow",
+        "tags": [
+            "Item.Class.Material.Fuel",
+            "Item.Property.Branch.Alchemy",
+            "Item.Trait.Combustible"
+        ],
+        "stats": {
+            "burn_temp": 400
+        }
+    },
+    {
+        "id": "crushed_limestone",
+        "name": "Crushed Limestone",
+        "tags": [
+            "Item.Class.Material.Stone",
+            "Item.Property.Branch.Masonry",
+            "Item.Property.Form.Powder"
+        ],
+        "stats": {
+            "weight": 0.5
+        }
+    },
+    {
+        "id": "mortar",
+        "name": "Mortar",
+        "tags": [
+            "Item.Class.Component.Binding",
+            "Item.Property.Branch.Masonry",
+            "Item.Property.Form.Paste"
+        ],
+        "stats": {
+            "weight": 1.0
+        }
+    },
+    {
+        "id": "dried_skin",
+        "name": "Dried Skin",
+        "tags": [
+            "Item.Class.Material.Hide",
+            "Item.Property.Branch.Tailoring",
+            "Item.Trait.Dried"
+        ],
+        "stats": {
+            "weight": 0.4
+        }
+    },
+    {
+        "id": "cured_leather",
+        "name": "Cured Leather",
+        "tags": [
+            "Item.Class.Material.Leather",
+            "Item.Property.Branch.Tailoring",
+            "Item.Trait.Cured"
+        ],
+        "stats": {
+            "flexibility": 8
+        }
+    },
+    {
+        "id": "clear_glass",
+        "name": "Clear Glass",
+        "tags": [
+            "Item.Class.Material.Glass",
+            "Item.Property.Branch.Alchemy",
+            "Item.Trait.Transparent"
+        ],
+        "stats": {
+            "transparency": 10
+        }
+    },
+    {
+        "id": "iron_ingot",
+        "name": "Iron Ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Form.Ingot",
+            "Item.Property.Elemental.Iron"
+        ],
+        "stats": {
+            "durability_mod": 1.2
+        }
+    },
+    {
+        "id": "brick_mold",
+        "name": "Brick Mold",
+        "tags": [
+            "Item.Class.Tool.Masonry",
+            "Item.Property.Branch.Masonry",
+            "Item.Trait.Reusable"
+        ],
+        "stats": {
+            "durability": 10
+        }
+    },
+    {
+        "id": "pouch",
+        "name": "Small Pouch",
+        "tags": [
+            "Item.Class.Armor.Bag",
+            "Item.Property.Branch.Tailoring",
+            "Item.Trait.Portable"
+        ],
+        "stats": {
+            "capacity": 5
+        }
+    },
+    {
+        "id": "knife_rusty",
+        "name": "Rusty Knife",
+        "tags": [
+            "Item.Class.Tool.Blade",
+            "Item.Property.Branch.Adventuring",
+            "Item.Trait.Sharp"
+        ],
+        "stats": {
+            "sharpness": 1
+        }
+    },
+    {
+        "id": "cordage_simple",
+        "name": "Braided Cordage",
+        "tags": [
+            "Item.Class.Component.Binding",
+            "Item.Property.Branch.Tailoring",
+            "Item.Trait.Refined"
+        ],
+        "stats": {
+            "strength": 5
+        }
+    },
+    {
+        "id": "staff",
+        "name": "Staff",
+        "tags": [
+            "Item.Class.Weapon.Staff",
+            "Item.Property.Branch.Adventuring"
+        ],
+        "stats": {}
+    },
+    {
+        "id": "iron_dagger",
+        "name": "Dagger",
+        "tags": [
+            "Item.Class.Weapon.Dagger",
+            "Item.Property.Branch.Adventuring",
+            "Item.Trait.Sharp"
+        ],
+        "stats": {}
+    },
+    {
+        "id": "simple_shirt",
+        "name": "Simple Shirt",
+        "tags": [
+            "Item.Class.Armor.Light",
+            "Item.Property.Branch.Tailoring"
+        ],
+        "stats": {}
+    },
+    {
+        "id": "simple_pants",
+        "name": "Simple Pants",
+        "tags": [
+            "Item.Class.Armor.Light",
+            "Item.Property.Branch.Tailoring"
+        ],
+        "stats": {}
+    },
+    {
+        "id": "simple_shoes",
+        "name": "Simple Shoes",
+        "tags": [
+            "Item.Class.Armor.Light",
+            "Item.Property.Branch.Tailoring"
+        ],
+        "stats": {}
+    },
+    {
+        "id": "stone_axe",
+        "name": "Stone Axe",
+        "stats": {
+            "power": 10
+        },
+        "tags": [
+            "Item.Class.Tool.Axe",
+            "Item.Trait.Sharp",
+            "Item.Class.Weapon.Axe"
+        ]
+    },
+    {
+        "id": "stone_pickaxe",
+        "name": "Stone Pickaxe",
+        "tags": [
+            "Item.Class.Tool.Pickaxe",
+            "Item.Property.Branch.Masonry",
+            "Item.Trait.Sharp"
+        ],
+        "stats": {
+            "power": 10
+        }
+    },
+    {
+        "id": "wooden_bucket",
+        "name": "Wooden Bucket",
+        "tags": [
+            "Item.Class.Tool.Bucket",
+            "Item.Property.Branch.Carpentry"
+        ],
+        "stats": {
+            "capacity": 10
+        }
+    }
+]

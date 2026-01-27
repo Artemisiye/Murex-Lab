@@ -1,3 +1,6 @@
+let activeView = 'workshop';
+let isMoving = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Survival Systems Operational.");
     setupNavigation();
@@ -42,6 +45,14 @@ function setupNavigation() {
     });
 }
 
+const TITLE_MAP = {
+    'workshop': 'Artificer Workshop',
+    'inventory': 'The Vault',
+    'map': 'World Map',
+    'exploration': 'Area Exploration',
+    'minions': 'Allies'
+};
+
 async function loadView(viewName) {
     const mainArea = document.getElementById('content-area');
     if (!mainArea) return;
@@ -52,11 +63,16 @@ async function loadView(viewName) {
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
         const html = await response.text();
         mainArea.innerHTML = html;
+        activeView = viewName;
+
+        const title = document.getElementById('view-title');
+        if (title) title.innerText = TITLE_MAP[viewName] || 'Murex Lab';
 
         if (viewName === 'workshop') initWorkshopModule();
         if (viewName === 'inventory') initInventoryModule();
         if (viewName === 'map') initMapModule();
         if (viewName === 'minions') initMinionsModule();
+        if (viewName === 'exploration') initExplorationModule();
     } catch (e) {
         console.error("Link Failure:", e);
         mainArea.innerHTML = `<div style="padding: 50px; color: #96281b; font-family: Cinzel;">Record unreadable: ${e.message}</div>`;
@@ -64,14 +80,18 @@ async function loadView(viewName) {
 }
 
 // --- Workshop ---
-let allSchematics = [];
+// --- Workshop State ---
+let allBlueprints = [];
 let activeStationId = 'station_none';
+let activeBlueprint = null;
+let selectedSlot = null;
+let selections = {}; // { slot_id: inv_key }
 
 async function initWorkshopModule() {
     try {
-        const res = await fetch('/api/schematics');
-        allSchematics = await res.json();
-        renderSchematicList();
+        const res = await fetch('/api/blueprints');
+        allBlueprints = await res.json();
+        renderBlueprintList();
 
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
@@ -80,17 +100,20 @@ async function initWorkshopModule() {
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 activeStationId = tab.getAttribute('data-station');
-                renderSchematicList();
+                renderBlueprintList();
             };
         });
+
+        const craftBtn = document.getElementById('craft-btn');
+        if (craftBtn) craftBtn.onclick = executeCraft;
     } catch (e) { console.error("Workshop Error:", e); }
 }
 
-function renderSchematicList() {
-    const list = document.getElementById('schematic-list');
+function renderBlueprintList() {
+    const list = document.getElementById('blueprint-list');
     if (!list) return;
     list.innerHTML = '';
-    const filtered = allSchematics.filter(s => (s.station_id || 'station_none') === activeStationId);
+    const filtered = allBlueprints.filter(s => (s.station_id || 'station_none') === activeStationId);
     if (filtered.length === 0) {
         list.innerHTML = '<li class="empty-state" style="padding:30px; opacity:0.3; text-align:center;">No blueprints found.</li>';
         return;
@@ -99,31 +122,155 @@ function renderSchematicList() {
         const li = document.createElement('li');
         li.innerHTML = `<div>${s.name}</div><small style="color: var(--text-dim);">${s.type}</small>`;
         li.onclick = () => {
-            document.querySelectorAll('#schematic-list li').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#blueprint-list li').forEach(el => el.classList.remove('active'));
             li.classList.add('active');
-            selectSchematic(s.id);
+            selectBlueprint(s.id);
         };
         list.appendChild(li);
     });
 }
 
-async function selectSchematic(id) {
+async function selectBlueprint(id) {
     try {
-        const res = await fetch(`/api/schematic/${id}`);
-        const data = await res.json();
+        const res = await fetch(`/api/blueprint/${id}`);
+        activeBlueprint = await res.json();
+        selections = {};
+
         const canvas = document.getElementById('blueprint-slots');
         const title = document.getElementById('blueprint-title');
-        if (title) title.innerText = data.name;
+        if (title) title.innerText = activeBlueprint.name;
+
         if (canvas) {
             canvas.innerHTML = '';
-            data.slots.forEach(slot => {
+            activeBlueprint.slots.forEach(slot => {
                 const div = document.createElement('div');
                 div.className = 'slot-node';
+                div.id = `slot-${slot.id}`;
                 div.innerHTML = `<div class="slot-label">${slot.label}</div><div class="slot-value">EMPTY</div>`;
+                div.onclick = () => openComponentPicker(slot);
                 canvas.appendChild(div);
             });
         }
+        updateCraftPreview();
     } catch (e) { console.error("Blueprint Error:", e); }
+}
+
+async function openComponentPicker(slot) {
+    selectedSlot = slot;
+    const picker = document.getElementById('component-picker');
+    const list = document.getElementById('component-list');
+    if (!picker || !list) return;
+
+    picker.classList.remove('hidden');
+    list.innerHTML = '<li style="padding:20px; opacity:0.5;">Searching Vault...</li>';
+
+    try {
+        const res = await fetch(`/api/components/${activeBlueprint.id}/${slot.id}`);
+        const items = await res.json();
+
+        list.innerHTML = '';
+        if (items.length === 0) {
+            list.innerHTML = '<li style="padding:20px; opacity:0.5; font-style:italic;">No valid items found in vault.</li>';
+        }
+
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'comp-item';
+            li.innerHTML = `
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${item.name}</strong>
+                    <span>x${item.quantity}</span>
+                </div>
+            `;
+            li.onclick = () => selectComponent(item);
+            list.appendChild(li);
+        });
+    } catch (e) { console.error("Picker Error:", e); }
+}
+
+function selectComponent(item) {
+    selections[selectedSlot.id] = item.inv_key;
+
+    // Update UI
+    const node = document.getElementById(`slot-${selectedSlot.id}`);
+    if (node) {
+        node.classList.add('filled');
+        node.querySelector('.slot-value').innerText = item.name;
+    }
+
+    document.getElementById('component-picker').classList.add('hidden');
+    updateCraftPreview();
+}
+
+async function updateCraftPreview() {
+    const btn = document.getElementById('craft-btn');
+    const statsBox = document.getElementById('preview-stats');
+    if (!btn || !statsBox) return;
+
+    // Check if all required slots filled
+    const allFilled = activeBlueprint.slots.every(s => s.optional || selections[s.id]);
+    btn.disabled = !allFilled;
+
+    if (!allFilled) {
+        statsBox.innerHTML = '<p class="dim">Assemble all components to analyze outcome.</p>';
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/preview_craft', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blueprint_id: activeBlueprint.id, components: selections })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            let statsHtml = `
+                <div class="result-preview" style="text-align:center; padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:20px;">
+                    <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:10px;">Forged Outcome</div>
+                    <img src="/static/assets/item_${data.output_id}.png" 
+                         onerror="this.src='/static/assets/item_oak_log.png'" 
+                         style="width:80px; height:80px; object-fit:contain; margin-bottom:15px; filter:drop-shadow(0 0 10px var(--accent));">
+                    <div style="font-family:'Cinzel'; font-size:1.1rem; color:#fff;">${data.output_name}</div>
+                </div>
+            `;
+
+            statsHtml += '<strong>Predicted Attributes:</strong><ul style="list-style:none; padding:10px; margin:0;">';
+            for (const [stat, val] of Object.entries(data.stats)) {
+                statsHtml += `<li>${stat.replace(/_/g, ' ')}: ${val.toFixed(1)}</li>`;
+            }
+            statsHtml += '</ul>';
+            statsBox.innerHTML = statsHtml;
+        } else {
+            statsBox.innerHTML = `<p style="color:#e74c3c;">Analysis failed: ${data.error}</p>`;
+            btn.disabled = true;
+        }
+    } catch (e) { console.error("Preview Error:", e); }
+}
+
+async function executeCraft() {
+    const btn = document.getElementById('craft-btn');
+    btn.disabled = true;
+    btn.innerText = "Executing Forge...";
+
+    try {
+        const res = await fetch('/api/craft_item', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blueprint_id: activeBlueprint.id, components: selections })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showModal("Crafting Success", `You have created: ${data.item_name}`);
+            // Clear current selection
+            selectBlueprint(activeBlueprint.id);
+        } else {
+            showModal("Crafting Failed", data.error);
+        }
+    } catch (e) { console.error("Craft Error:", e); }
+
+    btn.innerText = "Craft Item";
 }
 
 // --- Inventory ---
@@ -202,28 +349,80 @@ async function initInventoryModule() {
 }
 
 // --- Map & Navigation ---
-let mapData = null;
+// --- Map & Navigation ---
+let mapCache = new Map(); // "x,y" => cellData
+let playerPos = { x: 50, y: 50 };
+let mapSize = 100;
+let pooledTiles = [];
+const VIEW_RADIUS = 6; // 13x13 window (2 tile buffer for smoother animation)
+const TILE_SIZE = 150;
+// isMoving is declared at top
+
+// Precomputed Biome Sprites
+const BIOME_TEMPLATES = {
+    'forest': '<div class="biome-marker forest"><div class="f-tree"></div><div class="f-tree"></div><div class="f-tree"></div></div>',
+    'mountains': '<div class="biome-marker mountains"><div class="m-peak"></div><div class="m-peak"></div></div>',
+    'river': '<div class="biome-marker river"><div class="r-path"></div></div>',
+    'lab': '<div class="biome-marker lab"><div class="lab-spire"></div></div>',
+    'plains': '<div class="biome-marker plains"></div>',
+    'unknown': '<div class="fow-texture"></div>'
+};
 
 async function initMapModule() {
-    await refreshMap();
+    setupTilePool();
+    await loadInitialMap();
+
     const exploreBtn = document.getElementById('explore-btn');
     if (exploreBtn) exploreBtn.onclick = exploreCurrentArea;
+
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.onclick = () => moveOnMap(btn.getAttribute('data-dir'));
     });
 }
 
-async function refreshMap() {
+function setupTilePool() {
+    const container = document.getElementById('grid-container');
+    const viewport = document.querySelector('.map-viewport');
+    if (!container || !viewport) return;
+
+    container.innerHTML = '';
+    pooledTiles = [];
+
+    const count = (VIEW_RADIUS * 2 + 1) ** 2;
+    for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'grid-cell';
+        container.appendChild(div);
+        pooledTiles.push(div);
+    }
+
+    // Detaching avatar from grid: adding to viewport root for steady camera feel
+    const p = document.createElement('img');
+    p.id = 'active-player-marker';
+    p.className = 'player-marker-sprite';
+    p.src = '/static/assets/player_avatar.png';
+    viewport.appendChild(p);
+}
+
+async function loadInitialMap() {
     try {
         const res = await fetch('/api/map/data');
-        mapData = await res.json();
-        renderWorldGrid();
+        const data = await res.json();
+        playerPos = data.player_pos;
+        mapSize = data.size;
+
+        mapCache.clear();
+        data.cells.forEach(c => {
+            mapCache.set(`${c.x},${c.y}`, c);
+        });
+
+        requestAnimationFrame(renderWorldGrid);
         updateInfoPanel();
-    } catch (e) { console.error("Map Load Error:", e); }
+    } catch (e) { console.error("Initial Map Load Error:", e); }
 }
 
 function updateInfoPanel() {
-    const cell = mapData.cells.find(c => c.x === mapData.player_pos.x && c.y === mapData.player_pos.y);
+    const cell = mapCache.get(`${playerPos.x},${playerPos.y}`);
     if (!cell) return;
     const name = document.getElementById('cell-name');
     const coords = document.getElementById('cell-coords');
@@ -232,133 +431,246 @@ function updateInfoPanel() {
     if (coords) coords.innerText = `Region ${cell.x}, ${cell.y}`;
     if (resBox) {
         resBox.innerHTML = (cell.resources && cell.resources.length > 0)
-            ? cell.resources.map(r => `<span>${r.replace('mat_', '').replace(/_/g, ' ')}</span>`).join('')
+            ? cell.resources.map(r => `<span>${r.replace(/_/g, ' ')}</span>`).join('')
             : '<p style="opacity:0.3; font-style:italic; font-size:0.8rem;">No obvious resources.</p>';
     }
 }
 
 function renderWorldGrid() {
-    const container = document.getElementById('grid-container');
-    const underlay = document.getElementById('visualizer-field');
-    if (!container || !underlay) return;
+    if (pooledTiles.length === 0) return;
 
-    const size = mapData.size;
-    const cellW = 150;
-    const gap = 8;
+    let tileIdx = 0;
+    const centerTileX = playerPos.x;
+    const centerTileY = playerPos.y;
 
-    container.style.gridTemplateColumns = `repeat(${size}, ${cellW}px)`;
-    container.innerHTML = '';
+    console.log(`[MAP RENDER] Logical Center: ${centerTileX}, ${centerTileY} | Radius: ${VIEW_RADIUS}`);
 
-    for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-            const cell = mapData.cells.find(c => c.x === x && c.y === y);
-            const div = document.createElement('div');
-            div.className = `grid-cell ${cell.discovered ? cell.type : 'unknown'}`;
+    // Symmetrical loop around player center
+    for (let dy = -VIEW_RADIUS; dy <= VIEW_RADIUS; dy++) {
+        for (let dx = -VIEW_RADIUS; dx <= VIEW_RADIUS; dx++) {
+            const worldX = centerTileX + dx;
+            const worldY = centerTileY + dy;
+            const tile = pooledTiles[tileIdx++];
+            if (!tile) continue;
 
-            if (cell.discovered) {
-                const sprite = document.createElement('div');
-                sprite.className = `biome-marker ${cell.type}`;
+            // Positioning within the 13x13 container (1950px wide)
+            tile.style.left = `${(dx + VIEW_RADIUS) * TILE_SIZE}px`;
+            tile.style.top = `${(dy + VIEW_RADIUS) * TILE_SIZE}px`;
 
-                // Add internal shapes for biomes that need them
-                if (cell.type === 'forest') sprite.innerHTML = '<div class="f-tree"></div><div class="f-tree"></div><div class="f-tree"></div>';
-                if (cell.type === 'mountains') sprite.innerHTML = '<div class="m-peak"></div><div class="m-peak"></div>';
-                if (cell.type === 'river') sprite.innerHTML = '<div class="r-path"></div>';
-                if (cell.type === 'lab') sprite.innerHTML = '<div class="lab-spire"></div>';
+            // Bound check for map edges
+            if (worldX < 0 || worldX >= mapSize || worldY < 0 || worldY >= mapSize) {
+                tile.style.opacity = '0';
+                continue;
+            }
+            tile.style.opacity = '1';
 
-                div.appendChild(sprite);
+            const cell = mapCache.get(`${worldX},${worldY}`);
+            const isDiscovered = cell && cell.discovered;
+
+            if (!cell || !isDiscovered) {
+                tile.className = 'grid-cell unknown';
+                tile.innerHTML = BIOME_TEMPLATES['unknown'];
             } else {
-                div.innerHTML = '<div class="fow-texture"></div>';
+                tile.className = `grid-cell ${cell.type}`;
+                tile.innerHTML = BIOME_TEMPLATES[cell.type] || '';
+                if (cell.type === 'lab') tile.classList.add('lab');
             }
 
-            if (x === mapData.player_pos.x && y === mapData.player_pos.y) {
-                const p = document.createElement('img');
-                p.className = 'player-marker-sprite';
-                p.src = '/static/assets/player_avatar.png';
-                div.appendChild(p);
+            // Instrumentation: Coordinates Label
+            let debugLabel = tile.querySelector('.debug-coord');
+            if (!debugLabel) {
+                debugLabel = document.createElement('div');
+                debugLabel.className = 'debug-coord';
+                debugLabel.style.cssText = 'position:absolute; bottom:5px; right:5px; font-size:10px; pointer-events:none; z-index:50;';
+                tile.appendChild(debugLabel);
             }
-            container.appendChild(div);
+            debugLabel.innerText = `${worldX},${worldY}`;
+            debugLabel.style.color = isDiscovered ? 'rgba(255,255,255,0.4)' : 'rgba(255,0,0,0.8)';
+
+            // Visual Debug: Outline the logical center tile
+            if (dx === 0 && dy === 0) {
+                tile.style.outline = '2px solid rgba(255, 255, 0, 0.5)';
+                tile.style.outlineOffset = '-2px';
+                tile.style.zIndex = '5';
+            } else {
+                tile.style.outline = 'none';
+                tile.style.zIndex = '1';
+            }
         }
     }
-
-    // Dynamic Centering
-    const px = mapData.player_pos.x;
-    const py = mapData.player_pos.y;
-    const centerX = (size - 1) / 2;
-    const centerY = (size - 1) / 2;
-
-    const offsetX = (centerX - px) * (cellW + gap);
-    const offsetY = (centerY - py) * (cellW + gap);
-
-    underlay.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 }
 
 async function moveOnMap(direction) {
-    const res = await fetch('/api/map/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ direction })
-    });
-    const data = await res.json();
-    if (data.success) {
-        const energyDisp = document.getElementById('energy-display');
-        if (energyDisp) energyDisp.innerText = `Essence: ${data.energy}`;
-        await refreshMap();
-    } else {
-        // Only show modal if it's NOT an ocean block (we check message from app.py)
-        if (data.message && data.message !== "ocean_blocked") {
-            showModal("Movement Blocked", data.message);
+    if (isMoving) return;
+
+    try {
+        const res = await fetch('/api/map/move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ direction })
+        });
+        const data = await res.json();
+        if (data.success) {
+            isMoving = true;
+            const container = document.getElementById('grid-container');
+            const player = document.getElementById('active-player-marker');
+
+            // 1. Update cache with new cells immediately (even if in buffer)
+            if (data.new_cells) {
+                data.new_cells.forEach(c => {
+                    mapCache.set(`${c.x},${c.y}`, c);
+                });
+            }
+
+            // 2. Animate the shift
+            if (player) player.classList.add('walking');
+            const moves = { 'up': [0, 1], 'down': [0, -1], 'left': [1, 0], 'right': [-1, 0] };
+            const [mx, my] = moves[direction];
+
+            if (container) {
+                container.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                container.style.transform = `translate(${mx * TILE_SIZE}px, ${my * TILE_SIZE}px)`;
+            }
+
+            // 3. After animation, SNAP back and update logically
+            setTimeout(() => {
+                if (container) {
+                    container.style.transition = 'none';
+                    container.style.transform = 'translate(0, 0)';
+                }
+                if (player) player.classList.remove('walking');
+
+                playerPos = data.player_pos;
+                renderWorldGrid();
+                updateInfoPanel();
+
+                const energyDisp = document.getElementById('energy-display');
+                if (energyDisp) energyDisp.innerText = `Essence: ${data.energy}`;
+
+                isMoving = false;
+            }, 300);
+
+        } else {
+            if (data.message && data.message !== "ocean_blocked") {
+                showModal("Movement Blocked", data.message);
+            }
         }
+    } catch (e) {
+        console.error("Movement Error:", e);
+        isMoving = false;
     }
 }
 
 // --- Area Exploration ---
 window.closeRegionalMap = () => {
-    const overlay = document.getElementById('regional-overlay');
-    if (overlay) overlay.classList.add('hidden');
+    loadView('map');
 };
 
 async function exploreCurrentArea() {
+    loadView('exploration');
+}
+
+async function initExplorationModule() {
     try {
         const res = await fetch('/api/map/explore', { method: 'POST' });
         const data = await res.json();
-        if (data.success) renderAreaGrid(data.region_data);
-    } catch (e) { console.error("Exploration Failure:", e); }
+        if (data.success) {
+            renderAreaGrid(data.region_data);
+
+            // Re-bind nav buttons in the new view
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const resMove = await fetch('/api/map/region_move', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ direction: btn.getAttribute('data-dir') })
+                    });
+                    const resData = await resMove.json();
+                    if (resData.success) {
+                        renderAreaGrid(resData.region_data);
+                        checkAutoTriggers(resData.region_data);
+                    }
+                };
+            });
+        } else {
+            showModal("Exploration Blocked", data.message);
+            loadView('map');
+        }
+    } catch (e) {
+        console.error("Exploration Failure:", e);
+        loadView('map');
+    }
 }
 
 function renderAreaGrid(data) {
-    const overlay = document.getElementById('regional-overlay');
     const grid = document.getElementById('regional-grid');
-    if (!overlay || !grid) return;
-    overlay.classList.remove('hidden');
+    if (!grid) return;
     grid.innerHTML = '';
 
-    for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
+    const ASSET_MAP = {
+        'node_oak': 'item_oak_log.png',
+        'node_herbs': 'item_bitter_herbs.png',
+        'node_shrub': 'item_plant_fibers.png',
+        'node_grass': 'item_plant_fibers.png',
+        'node_seeds': 'item_wild_seeds.png',
+        'node_bush': 'item_wild_seeds.png',
+        'node_loose_stone': 'item_rough_stone.png',
+        'node_iron': 'item_iron_ore.png',
+        'node_stone': 'item_rough_stone.png',
+        'node_clay': 'item_raw_clay.png',
+        'node_fish': 'item_fish.png',
+        'node_reeds': 'item_plant_fibers.png',
+        'node_fallen_branches': 'item_oak_log.png',
+        'node_driftwood': 'item_oak_log.png'
+    };
+
+    for (let y = 0; y < 10; y++) {
+        for (let x = 0; x < 10; x++) {
             const cellDiv = document.createElement('div');
             cellDiv.className = 'reg-cell';
+
             const node = data.nodes.find(n => n.x === x && n.y === y);
+            const entity = data.entities.find(e => e.x === x && e.y === y);
+            const isPlayer = data.player_pos.x === x && data.player_pos.y === y;
+
             if (node) {
                 cellDiv.classList.add('node');
-                const s = document.createElement('img');
-                s.className = 'reg-sprite';
-                s.src = '/static/assets/item_oak_log.png'; // Using log as generic node sprite for now
-                cellDiv.appendChild(s);
+
+                const lbl = document.createElement('div');
+                lbl.className = 'reg-label';
+                lbl.style.cssText = 'font-size: 0.9vmin; color: var(--text-dim); text-transform: uppercase; font-family: Cinzel; pointer-events: none;';
+                lbl.innerText = node.name;
+                cellDiv.appendChild(lbl);
+
+                const asset = ASSET_MAP[node.id];
+                if (asset) {
+                    const s = document.createElement('img');
+                    s.className = 'reg-sprite';
+                    s.src = `/static/assets/${asset}`;
+                    s.style.display = 'none';
+                    s.onload = () => { s.style.display = 'block'; lbl.style.display = 'none'; };
+                    s.onerror = () => { s.remove(); lbl.style.display = 'block'; };
+                    cellDiv.appendChild(s);
+                }
             }
-            const entity = data.entities.find(e => e.x === x && e.y === y);
+
             if (entity) {
                 cellDiv.classList.add('entity');
                 const s = document.createElement('img');
                 s.className = 'reg-sprite';
-                s.src = '/static/assets/player_avatar.png'; // Placeholder for entity
+                s.src = '/static/assets/player_avatar.png'; // Placeholder for mob
+                s.style.opacity = '0.4';
                 cellDiv.appendChild(s);
             }
-            if (data.player_pos.x === x && data.player_pos.y === y) {
+
+            if (isPlayer) {
                 cellDiv.classList.add('player');
                 const p = document.createElement('img');
                 p.className = 'reg-player-sprite';
                 p.src = '/static/assets/player_avatar.png';
                 cellDiv.appendChild(p);
             }
+
             grid.appendChild(cellDiv);
         }
     }
@@ -367,9 +679,9 @@ function renderAreaGrid(data) {
     if (!window.regionalHandlerAttached) {
         window.regionalHandlerAttached = true;
         window.addEventListener('keydown', async (e) => {
-            const over = document.getElementById('regional-overlay');
-            if (!over || over.classList.contains('hidden')) return;
+            if (activeView !== 'exploration') return;
             const moves = { 'ArrowUp': 'up', 'w': 'up', 'ArrowDown': 'down', 's': 'down', 'ArrowLeft': 'left', 'a': 'left', 'ArrowRight': 'right', 'd': 'right' };
+
             if (moves[e.key]) {
                 e.preventDefault();
                 const res = await fetch('/api/map/region_move', {
@@ -382,6 +694,16 @@ function renderAreaGrid(data) {
                     renderAreaGrid(resData.region_data);
                     checkAutoTriggers(resData.region_data);
                 }
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                // Harvest current pos
+                const gridData = await fetch('/api/map/explore', { method: 'POST' }).then(r => r.json());
+                if (gridData.success) {
+                    harvestNode(gridData.region_data.player_pos.x, gridData.region_data.player_pos.y);
+                }
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                closeRegionalMap();
             }
         });
     }
@@ -400,7 +722,8 @@ function checkAutoTriggers(data) {
 }
 
 async function harvestNode(x, y) {
-    console.log(`Harvesting node at ${x}, ${y}...`);
+    const dock = document.getElementById('context-actions');
+
     try {
         const res = await fetch('/api/map/harvest', {
             method: 'POST',
@@ -408,11 +731,25 @@ async function harvestNode(x, y) {
             body: JSON.stringify({ x, y })
         });
         const data = await res.json();
+
         if (data.success) {
-            showModal("Harvest Success", `Extracted: ${data.loot.join(', ').replace(/mat_/g, '').replace(/_/g, ' ')}`);
+            // Toast Notification
+            const toast = document.createElement('div');
+            toast.className = 'harvest-toast';
+            toast.innerText = `+ ${data.loot.join(', ').replace(/_/g, ' ')}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+
             renderAreaGrid(data.region_data);
         } else {
-            showModal("Harvest Failed", data.message);
+            // Silent if nothing here
+            if (data.message === "No resource here.") return;
+
+            // Shake UI if failed (e.g. no tool)
+            if (dock) {
+                dock.classList.add('shake');
+                setTimeout(() => dock.classList.remove('shake'), 400);
+            }
         }
     } catch (e) {
         console.error("Harvest Error:", e);
@@ -425,16 +762,19 @@ function renderAreaActions(data) {
     dock.innerHTML = '';
     const px = data.player_pos.x;
     const py = data.player_pos.y;
-    const neighbors = [
+
+    // Only actions on the CURRENT TILE
+    const currentObjects = [
         ...data.nodes.map(n => ({ ...n, interType: 'harvest' })),
         ...data.entities.map(e => ({ ...e, interType: e.type === 'prey' ? 'hunt' : 'combat' }))
-    ].filter(obj => Math.abs(obj.x - px) <= 1 && Math.abs(obj.y - py) <= 1);
+    ].filter(obj => obj.x === px && obj.y === py);
 
-    if (neighbors.length === 0) {
-        dock.innerHTML = '<p style="opacity:0.3; font-style:italic;">Move closer to interact.</p>';
+    if (currentObjects.length === 0) {
+        dock.innerHTML = '<p style="opacity:0.3; font-style:italic;">Nothing to interact with here.</p>';
         return;
     }
-    neighbors.forEach(obj => {
+
+    currentObjects.forEach(obj => {
         const btn = document.createElement('button');
         btn.className = 'context-btn';
         let label = "Interact";
@@ -444,7 +784,12 @@ function renderAreaActions(data) {
 
         if (obj.interType === 'harvest') {
             label = `Harvest ${cleanName}`;
-            detail = `Needs: ${obj.tool.replace(/_/g, ' ')}`;
+            if (obj.tool) {
+                const toolName = obj.tool.split('.').pop();
+                detail = `Tool: ${toolName}`;
+            } else {
+                detail = "Manual";
+            }
             btn.onclick = () => harvestNode(obj.x, obj.y);
         } else if (obj.interType === 'hunt') {
             label = `Hunt ${cleanName}`;
@@ -454,19 +799,23 @@ function renderAreaActions(data) {
             btn.onclick = () => showModal("Combat", `Initiating combat with ${cleanName}...`);
         }
 
-        btn.innerHTML = `<span>${label}</span> <small>${detail}</small>`;
+        btn.innerHTML = `
+            <span class="label">${label}</span>
+            <span class="detail">${detail}</span>
+        `;
         dock.appendChild(btn);
     });
 }
 
 // Global Nav
 window.addEventListener('keydown', (e) => {
-    const title = document.getElementById('view-title');
-    if (!title || !title.innerText.includes('Map')) return;
-    const over = document.getElementById('regional-overlay');
-    if (over && !over.classList.contains('hidden')) return;
+    if (activeView !== 'map') return;
     const moves = { 'ArrowUp': 'up', 'w': 'up', 'ArrowDown': 'down', 's': 'down', 'ArrowLeft': 'left', 'a': 'left', 'ArrowRight': 'right', 'd': 'right' };
     if (moves[e.key]) moveOnMap(moves[e.key]);
+    if (e.key === ' ') {
+        e.preventDefault();
+        exploreCurrentArea();
+    }
 });
 
 // --- Allies ---

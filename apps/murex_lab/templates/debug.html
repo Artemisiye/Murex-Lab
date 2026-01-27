@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Murex Lab - Artificer Tools</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
     <style>
         :root {
             --bg: #0f0e0c;
@@ -107,13 +108,296 @@
     </div>
 
     <div class="tool-section">
-        <h2>Recipe Manager</h2>
-        <p style="opacity: 0.5; font-style: italic;">Tool initialization pending schematic engine update...</p>
+        <h2>Data Manager</h2>
+        <div class="debug-tabs">
+            <button class="d-tab active" onclick="loadData('blueprints')">Blueprints</button>
+            <button class="d-tab" onclick="loadData('items')">Items</button>
+        </div>
+
+        <div class="manager-layout">
+            <div class="entry-list" id="entry-list">
+                <!-- Data goes here -->
+            </div>
+            <div class="entry-editor" id="entry-editor">
+                <div class="empty-state">Select an entry or <a href="#" onclick="createNewEntry()">Create New</a></div>
+            </div>
+        </div>
     </div>
 
     <div class="log" id="debug-log">Systems ready. Waiting for input...</div>
 
+    <style>
+        .debug-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #332d24;
+            padding-bottom: 10px;
+        }
+
+        .d-tab {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-dim);
+            padding: 5px 15px;
+            cursor: pointer;
+            font-family: var(--font-title);
+        }
+
+        .d-tab.active {
+            color: var(--accent);
+            border-color: var(--accent);
+            border-bottom-color: var(--bg);
+        }
+
+        .manager-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+            height: 500px;
+        }
+
+        .entry-list {
+            border-right: 1px solid #332d24;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .entry-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 0.85rem;
+        }
+
+        .entry-item:hover {
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .entry-item.active {
+            color: var(--accent);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .entry-editor {
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .editor-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-row label {
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .form-row input,
+        .form-row select,
+        .form-row textarea {
+            background: #000;
+            border: 1px solid #332d24;
+            color: #fff;
+            padding: 8px;
+            font-family: inherit;
+        }
+
+        .field-group {
+            border: 1px solid #2a261f;
+            padding: 10px;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .field-group .group-label {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: var(--panel);
+            padding: 0 5px;
+            font-size: 0.7rem;
+            color: var(--accent);
+        }
+
+        .slot-entry {
+            border-bottom: 1px solid #333;
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .delete-btn {
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 0.7rem;
+            text-align: right;
+        }
+    </style>
+
     <script>
+        let currentFileType = 'blueprints';
+        let currentData = [];
+        let activeEntry = null;
+
+        async function loadData(type) {
+            currentFileType = type;
+            document.querySelectorAll('.d-tab').forEach(t => {
+                t.classList.toggle('active', t.innerText.toLowerCase() === type);
+            });
+
+            const res = await fetch(`/api/debug/data/${type}`);
+            currentData = await res.json();
+            renderEntryList();
+        }
+
+        function renderEntryList() {
+            const list = document.getElementById('entry-list');
+            list.innerHTML = '';
+            currentData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `entry-item ${activeEntry?.id === item.id ? 'active' : ''}`;
+                div.innerText = item.id;
+                div.onclick = () => selectEntry(item);
+                list.appendChild(div);
+            });
+            const createBtn = document.createElement('button');
+            createBtn.innerText = "+ New Entry";
+            createBtn.style.margin = "10px";
+            createBtn.onclick = createNewEntry;
+            list.appendChild(createBtn);
+        }
+
+        function selectEntry(item) {
+            activeEntry = item;
+            renderEntryList();
+            renderEditor();
+        }
+
+        function createNewEntry() {
+            const schemas = {
+                blueprints: { id: "bp_new", name: "New Blueprint", station_id: "station_none", slots: [], base_stats: {} },
+                items: { id: "item_new", name: "New Item", tags: [], stats: {} }
+            };
+            activeEntry = JSON.parse(JSON.stringify(schemas[currentFileType]));
+            renderEditor();
+        }
+
+        function renderEditor() {
+            const editor = document.getElementById('entry-editor');
+            if (!activeEntry) return;
+
+            let html = `<div class="editor-form">`;
+
+            // Core Fields
+            Object.keys(activeEntry).forEach(key => {
+                if (typeof activeEntry[key] === 'string') {
+                    html += `
+                        <div class="form-row">
+                            <label>${key}</label>
+                            <input type="text" value="${activeEntry[key]}" onchange="updateField('${key}', this.value)">
+                        </div>`;
+                }
+            });
+
+            // Specific Logic for complex structures
+            if (currentFileType === 'blueprints') {
+                html += renderBlueprintExtensions();
+                html += renderStatsEditor('base_stats');
+            } else {
+                html += renderGenericExtensions();
+                html += renderStatsEditor('stats');
+            }
+
+            html += `
+                <div style="margin-top:20px; display:flex; gap:10px;">
+                    <button onclick="saveEntry()" style="flex:1">Save to JSON</button>
+                    <button onclick="activeEntry=null; renderEditor()" style="background:#444; border-color:#666;">Cancel</button>
+                </div>
+            </div>`;
+
+            editor.innerHTML = html;
+        }
+
+        function renderBlueprintExtensions() {
+            let sHTML = `<div class="field-group"><div class="group-label">Crafting Slots</div>`;
+            (activeEntry.slots || []).forEach((slot, i) => {
+                sHTML += `
+                    <div class="slot-entry">
+                        <div class="delete-btn" onclick="removeSlot(${i})">[Remove Slot]</div>
+                        <input type="text" placeholder="ID" value="${slot.id}" onchange="activeEntry.slots[${i}].id=this.value">
+                        <input type="text" placeholder="Label" value="${slot.label}" onchange="activeEntry.slots[${i}].label=this.value">
+                        <input type="text" placeholder="Tags (comma separated)" value="${(slot.required_tags || []).join(', ')}" onchange="activeEntry.slots[${i}].required_tags=this.value.split(',').map(s=>s.trim())">
+                        <label style="font-size:0.7rem;"><input type="checkbox" ${slot.catalyst ? 'checked' : ''} onchange="activeEntry.slots[${i}].catalyst=this.checked"> Catalyst (Not Consumed)</label>
+                    </div>`;
+            });
+            sHTML += `<button onclick="addSlot()" style="margin-top:10px; font-size:0.7rem;">+ Add Slot</button></div>`;
+            return sHTML;
+        }
+
+        function renderGenericExtensions() {
+            let tHTML = `<div class="form-row"><label>Tags (Comma separated)</label>
+                         <input type="text" value="${(activeEntry.tags || []).join(', ')}" onchange="activeEntry.tags=this.value.split(',').map(s=>s.trim())"></div>`;
+            return tHTML;
+        }
+
+        function renderStatsEditor(key) {
+            activeEntry[key] = activeEntry[key] || {};
+            let sHTML = `<div class="field-group"><div class="group-label">Stats Cluster (${key})</div>`;
+            Object.keys(activeEntry[key]).forEach(stat => {
+                sHTML += `
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
+                        <input type="text" value="${stat}" readonly style="flex:1; opacity:0.5; font-size:0.7rem;">
+                        <input type="number" step="0.1" value="${activeEntry[key][stat]}" onchange="activeEntry['${key}']['${stat}']=parseFloat(this.value)" style="flex:1; font-size:0.7rem;">
+                        <div class="delete-btn" onclick="delete activeEntry['${key}']['${stat}']; renderEditor()">×</div>
+                    </div>`;
+            });
+            sHTML += `
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <input type="text" id="new-stat-key" placeholder="stat_name" style="flex:1; font-size:0.7rem;">
+                    <button onclick="addStat('${key}')" style="font-size:0.7rem;">Add Stat</button>
+                </div></div>`;
+            return sHTML;
+        }
+
+        function addStat(key) {
+            const name = document.getElementById('new-stat-key').value;
+            if (!name) return;
+            activeEntry[key][name] = 1.0;
+            renderEditor();
+        }
+
+        // Editor Helpers
+        function updateField(key, val) { activeEntry[key] = val; }
+        function addSlot() {
+            activeEntry.slots = activeEntry.slots || [];
+            activeEntry.slots.push({ id: "slot_id", label: "Label", required_tags: [] });
+            renderEditor();
+        }
+        function removeSlot(i) { activeEntry.slots.splice(i, 1); renderEditor(); }
+
+        async function saveEntry() {
+            const res = await fetch(`/api/debug/data/${currentFileType}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(activeEntry)
+            });
+            const data = await res.json();
+            log(data.message);
+            loadData(currentFileType);
+        }
+
         async function cheat(url) {
             const res = await fetch(url, { method: 'POST' });
             const data = await res.json();
@@ -137,6 +421,9 @@
             l.innerHTML += `<div>> ${msg}</div>`;
             l.scrollTop = l.scrollHeight;
         }
+
+        // Init
+        loadData('blueprints');
     </script>
 </body>
 
