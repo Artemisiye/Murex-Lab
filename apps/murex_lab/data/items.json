@@ -494,5 +494,55 @@
         "stats": {
             "capacity": 10
         }
+    },
+    {
+        "id": "stone_shovel",
+        "name": "Stone Shovel",
+        "tags": [
+            "Item.Class.Tool.Shovel",
+            "Item.Property.Branch.Masonry"
+        ],
+        "stats": {
+            "power": 10
+        }
+    },
+    {
+        "id": "copper_ingot",
+        "name": "Copper Ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Form.Ingot",
+            "Item.Property.Elemental.Copper"
+        ],
+        "stats": {
+            "durability_mod": 1.1
+        }
+    },
+    {
+        "id": "tin_ingot",
+        "name": "Tin Ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Form.Ingot",
+            "Item.Property.Elemental.Tin"
+        ],
+        "stats": {
+            "durability_mod": 1.05
+        }
+    },
+    {
+        "id": "bronze_ingot",
+        "name": "Bronze Ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy",
+            "Item.Property.Form.Ingot",
+            "Item.Property.Elemental.Bronze"
+        ],
+        "stats": {
+            "durability_mod": 1.5
+        }
     }
 ]

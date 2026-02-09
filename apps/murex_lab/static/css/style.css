@@ -4,7 +4,6 @@
     --bg-dark: #080705;
     --bg-panel: rgba(22, 19, 15, 0.95);
     --accent: #d4af37;
-    --accent-glow: rgba(212, 175, 55, 0.2);
     --text-main: #e0d7c6;
     --text-dim: #8b7d6b;
     --tile-size: 150px;
@@ -243,6 +242,14 @@ header {
     justify-content: center;
     position: relative;
     overflow: hidden;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.biome-marker img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* Forest: Stylized Trees */
@@ -367,9 +374,8 @@ header {
     height: 85px;
     object-fit: contain;
     z-index: 50;
-    /* Static per spec */
-    filter: brightness(0.2) drop-shadow(0 0 2px var(--accent));
-    /* Flat silhouette with tiny edge highlight */
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 @keyframes float {
@@ -400,6 +406,13 @@ header {
     border-bottom: 2px solid #1a1814;
     position: relative;
     overflow: hidden;
+    image-rendering: pixelated;
+}
+
+.item-visual-thumbnail img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
 }
 
 .iv-shape {
@@ -454,6 +467,8 @@ header {
     max-width: 80%;
     max-height: 80%;
     object-fit: contain;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 /* Artisan Buttons */
@@ -519,35 +534,183 @@ header {
 
 /* --- Quality of Life Animations --- */
 @keyframes ui-shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    50% {
+        transform: translateX(5px);
+    }
+
+    75% {
+        transform: translateX(-5px);
+    }
 }
 
 .shake {
     animation: ui-shake 0.3s ease-in-out;
 }
 
-.harvest-toast {
+.toast-notification {
     position: fixed;
-    bottom: 100px;
+    bottom: 120px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--accent);
-    color: #000;
-    padding: 12px 24px;
+    background: #1a1814;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 15px 30px;
     font-family: var(--font-title);
     font-weight: bold;
-    z-index: 2000;
+    z-index: 3000;
     pointer-events: none;
-    animation: toast-float 2s forwards;
+    animation: toast-float 2.5s forwards;
     letter-spacing: 2px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+.toast-notification.success {
+    background: var(--accent);
+    color: #000;
 }
 
 @keyframes toast-float {
-    0% { opacity: 0; transform: translate(-50%, 20px); }
-    20% { opacity: 1; transform: translate(-50%, 0); }
-    80% { opacity: 1; transform: translate(-50%, -20px); }
-    100% { opacity: 0; transform: translate(-50%, -40px); }
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -20px);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -40px);
+    }
+
+    font-weight: bold;
+    color: #ecf0f1;
+}
+
+.m-role {
+    font-size: 0.8rem;
+    color: #95a5a6;
+}
+
+.minion-detail-panel {
+    flex-grow: 1;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.detail-header {
+    border-bottom: 1px solid #7f8c8d;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.stat-block,
+.gear-block {
+    background: rgba(30, 30, 50, 0.5);
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.gear-slot {
+    margin-bottom: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #4a4a60;
+}
+
+.slot-label {
+    font-size: 0.8rem;
+    color: #bdc3c7;
+    text-transform: uppercase;
+}
+
+.slot-item {
+    font-weight: bold;
+    color: #f1c40f;
+}
+
+/* Combat Unit Thumbnails */
+.unit-thumbnail {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.unit-thumbnail.player {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border: 2px solid #3498db;
+}
+
+.unit-thumbnail.enemy {
+    background: linear-gradient(135deg, #8b0000 0%, #a52a2a 100%);
+    border: 2px solid #c0392b;
+}
+
+.unit-icon {
+    font-size: 3rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-family: var(--font-title);
+}
+
+.combatant-card.dead .unit-thumbnail {
+    opacity: 0.3;
+    filter: grayscale(1);
+}
+
+.death-tag {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #e74c3c;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border: 1px solid #c0392b;
+    z-index: 10;
 }

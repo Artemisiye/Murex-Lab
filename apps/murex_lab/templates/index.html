@@ -18,15 +18,17 @@
         <nav class="sidebar">
             <div class="logo">MUREX LAB</div>
             <ul class="nav-links">
-                <li class="active" data-view="workshop">Workshop</li>
+                <li class="active" data-view="map">Map</li>
+                <li data-view="workshop">Workshop</li>
                 <li data-view="inventory">Inventory</li>
-                <li data-view="map">Map</li>
                 <li data-view="orders">Orders</li>
                 <li data-view="minions">Minions</li>
                 <li data-view="research">Research</li>
+                <li onclick="window.location.href='/retro'"
+                    style="color: var(--accent); opacity: 0.5; margin-top: 20px; font-size: 0.8em;">[ RETRO MODE ]</li>
             </ul>
             <div class="player-status">
-                <div class="energy" id="energy-display">Essence: 100</div>
+                <div class="energy" id="energy-display">Energy: 100</div>
                 <div class="gold">Gold: 0</div>
                 <div class="date">Day 1</div>
             </div>
@@ -45,6 +47,9 @@
                 </div>
             </div>
         </main>
+
+        <!-- Combat Specific Viewport (Full Screen Switch) -->
+        <div id="combat-container" class="hidden"></div>
     </div>
 
     <!-- Global Modal Overlay -->

@@ -101,3 +101,25 @@ class Inventory:
 
     def get_all(self):
         return self.items
+
+    def transfer_to(self, target_inventory, filter_func=None):
+        """
+        Transfers items from this inventory to another.
+        filter_func: a function(InventoryItem) -> bool. If it returns True, the item is transferred.
+        """
+        keys_to_transfer = list(self.items.keys())
+        transferred_count = 0
+        
+        for key in keys_to_transfer:
+            item = self.items[key]
+            if not filter_func or filter_func(item):
+                # Add to target
+                target_inventory.add_item(item.item_id, item.quantity, item.data, persistent_id=key)
+                # Remove from source
+                del self.items[key]
+                transferred_count += 1
+        
+        if transferred_count > 0:
+            self.save()
+            target_inventory.save()
+        return transferred_count

@@ -248,5 +248,147 @@
                 ]
             }
         ]
+    },
+    {
+        "id": "bp_stone_shovel",
+        "name": "Stone Shovel",
+        "station_id": "station_none",
+        "output_id": "stone_shovel",
+        "tags": [
+            "Item.Class.Tool.Shovel",
+            "Item.Property.Branch.Masonry"
+        ],
+        "slots": [
+            {
+                "id": "slot_head",
+                "label": "Stone Blade",
+                "required_tags": [
+                    "Item.Class.Material.Stone"
+                ]
+            },
+            {
+                "id": "slot_handle",
+                "label": "Wood Handle",
+                "required_tags": [
+                    "Item.Class.Material.Wood"
+                ]
+            },
+            {
+                "id": "slot_binding",
+                "label": "Binding",
+                "required_tags": [
+                    "Item.Class.Component.Binding"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "bp_iron_ingot",
+        "name": "Smelt Iron Ingot",
+        "station_id": "station_forge",
+        "output_id": "iron_ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy"
+        ],
+        "slots": [
+            {
+                "id": "slot_ore",
+                "label": "Iron Ore",
+                "required_tags": [
+                    "Item.Property.Elemental.Iron",
+                    "Item.Class.Material.Ore"
+                ]
+            },
+            {
+                "id": "slot_fuel",
+                "label": "Fuel",
+                "required_tags": [
+                    "Item.Trait.Fuel"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "bp_copper_ingot",
+        "name": "Smelt Copper Ingot",
+        "station_id": "station_forge",
+        "output_id": "copper_ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy"
+        ],
+        "slots": [
+            {
+                "id": "slot_ore",
+                "label": "Native Copper",
+                "required_tags": [
+                    "Item.Property.Elemental.Copper",
+                    "Item.Class.Material.Ore"
+                ]
+            },
+            {
+                "id": "slot_fuel",
+                "label": "Fuel",
+                "required_tags": [
+                    "Item.Trait.Fuel"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "bp_tin_ingot",
+        "name": "Smelt Tin Ingot",
+        "station_id": "station_forge",
+        "output_id": "tin_ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy"
+        ],
+        "slots": [
+            {
+                "id": "slot_ore",
+                "label": "Tin Ore",
+                "required_tags": [
+                    "Item.Property.Elemental.Tin",
+                    "Item.Class.Material.Ore"
+                ]
+            },
+            {
+                "id": "slot_fuel",
+                "label": "Fuel",
+                "required_tags": [
+                    "Item.Trait.Fuel"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "bp_bronze_ingot",
+        "name": "Assembe Bronze Ingot",
+        "station_id": "station_forge",
+        "output_id": "bronze_ingot",
+        "tags": [
+            "Item.Class.Material.Metal",
+            "Item.Property.Branch.Metallurgy"
+        ],
+        "slots": [
+            {
+                "id": "slot_copper",
+                "label": "Copper Ingot",
+                "required_tags": [
+                    "Item.Property.Elemental.Copper",
+                    "Item.Property.Form.Ingot"
+                ]
+            },
+            {
+                "id": "slot_tin",
+                "label": "Tin Ingot",
+                "required_tags": [
+                    "Item.Property.Elemental.Tin",
+                    "Item.Property.Form.Ingot"
+                ]
+            }
+        ]
     }
 ]

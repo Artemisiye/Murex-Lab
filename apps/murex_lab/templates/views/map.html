@@ -128,7 +128,6 @@
         position: absolute;
         width: 80px;
         height: 80px;
-        filter: drop-shadow(0 0 10px var(--accent));
         z-index: 100;
         pointer-events: none;
         left: 50%;
@@ -136,6 +135,7 @@
         transform: translate(-50%, -50%);
         transform-origin: bottom center;
         transition: filter 0.3s;
+        image-rendering: pixelated;
     }
 
     .player-marker-sprite.walking {

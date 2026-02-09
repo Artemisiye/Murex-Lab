@@ -1,6 +1,6 @@
 # Summoners War ⚔️ Murex Lab: Design Integration
 
-This document outlines the gameplay features and design philosophies from **Summoners War: Sky Arena (SW)** being integrated into **Murex Lab**. The goal is to bring the depth of SW's character progression and strategic combat to the Artificer-themed world of Murex.
+This document outlines the gameplay features and design philosophies from **Summoners War: Sky Arena (SW)** that COULD be integrated into **Murex Lab**. The goal is to bring the depth of SW's character progression and strategic combat to the Artificer-themed world of Murex.
 
 ---
 
@@ -104,7 +104,7 @@ The primary way to collect raw materials. We use a **Nested Grid** system to bri
 
 ## 5. Combat & Gear Integration
 
-The Artificer provides the power. Minions are "shells" modified by your output.
+The Artificer provides the power. Minions are the companions or servants who carry out the player's will, modified by your output.
 
 ### Gear-Based Skillsets:
 *   **Weapon 1 & 2**: These determine Skills 1 and 2. 

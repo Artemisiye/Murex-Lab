@@ -42,7 +42,10 @@ class RegionalMap:
             ]
         elif cell_type == "mountains":
             possible_nodes = [
-                RegionalNode("node_iron", "Iron Vein", "Item.Class.Tool.Pickaxe", ["iron_ore"], weight=3),
+                RegionalNode("node_iron", "Iron Vein", "Item.Class.Tool.Pickaxe", ["iron_ore"], weight=4),
+                RegionalNode("node_copper", "Copper Vein", "Item.Class.Tool.Pickaxe", ["native_copper"], weight=3),
+                RegionalNode("node_tin", "Tin Vein", "Item.Class.Tool.Pickaxe", ["tin_ore"], weight=2),
+                RegionalNode("node_cinnabar", "Cinnabar Vein", "Item.Class.Tool.Pickaxe", ["cinnabar_ore"], weight=1),
                 RegionalNode("node_stone", "Rock Outcrop", "Item.Class.Tool.Pickaxe", ["rough_stone", "flint_shard"], weight=5),
                 RegionalNode("node_loose_stone", "Loose Stone", "", ["rough_stone"], weight=8)
             ]
@@ -52,6 +55,17 @@ class RegionalMap:
                 RegionalNode("node_fish", "Fishing Spot", "Item.Class.Tool.FishingRod", ["fish"], weight=3),
                 RegionalNode("node_reeds", "River Reeds", "", ["plant_fibers"], weight=6),
                 RegionalNode("node_driftwood", "Driftwood", "", ["oak_log"], weight=4)
+            ]
+        elif cell_type == "beach":
+            possible_nodes = [
+                RegionalNode("node_sand", "Drift Sand", "Item.Class.Tool.Shovel", ["sand"], weight=10),
+                RegionalNode("node_clay", "Saline Clay", "Item.Class.Tool.Shovel", ["raw_clay"], weight=4),
+                RegionalNode("node_driftwood", "Driftwood", "", ["oak_log"], weight=3)
+            ]
+        elif cell_type == "sea":
+            possible_nodes = [
+                RegionalNode("node_salt", "Salt Crust", "", ["sea_salt"], weight=5),
+                RegionalNode("node_fish", "Deep Water Fish", "Item.Class.Tool.FishingRod", ["fish"], weight=8)
             ]
             
         if not possible_nodes: return
@@ -94,6 +108,18 @@ class RegionalMap:
         if node:
             del self.grid[(x, y)]
             return node.loot_items
+        return []
+
+    def hunt(self, x, y):
+        """Removes an entity at (x, y) and returns its loot."""
+        entity_idx = next((i for i, e in enumerate(self.entities) if e['x'] == x and e['y'] == y), None)
+        if entity_idx is not None:
+            entity = self.entities.pop(entity_idx)
+            # Simple drop table based on entity ID
+            if entity['id'] == "animal_boar":
+                return ["raw_hide", "animal_fat"]
+            elif entity['id'] == "enemy_bandit":
+                return ["iron_dagger", "pouch"] # Rare drops or specific loot
         return []
 
     def to_dict(self):

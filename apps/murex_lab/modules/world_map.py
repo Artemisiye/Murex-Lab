@@ -71,6 +71,14 @@ class map_manager:
                 if dist_to_center > (self.size // 2) - 3:
                      # Far edges are Ocean
                      cell = map_cell(x, y, "Deep Waters", "ocean")
+                elif dist_to_center > (self.size // 2) - 5:
+                     # Buffer is Sea
+                     cell = map_cell(x, y, "Open Sea", "sea")
+                     cell.resources = ["sea_salt", "fish"]
+                elif dist_to_center > (self.size // 2) - 6:
+                     # Transition is Beach
+                     cell = map_cell(x, y, "Sanded Shore", "beach")
+                     cell.resources = ["sand", "raw_clay"]
                 elif x == center and y == center:
                     cell = map_cell(x, y, "The Lab", "lab")
                 else:
@@ -80,13 +88,13 @@ class map_manager:
                         cell.resources = ["mat_oak_log", "mat_plant_fibers"]
                     elif r < 0.22:
                         cell = map_cell(x, y, "Jagged Peaks", "mountains")
-                        cell.resources = ["mat_iron_ore", "mat_rough_stone"]
+                        cell.resources = ["iron_ore", "rough_stone", "native_copper", "tin_ore"]
                     elif r < 0.30:
                         cell = map_cell(x, y, "Winding River", "river")
-                        cell.resources = ["mat_river_water", "mat_raw_clay"]
+                        cell.resources = ["river_water", "raw_clay"]
                     else:
                         cell = map_cell(x, y, "Wild Meadow", "plains")
-                        cell.resources = ["mat_plant_fibers", "mat_wild_seeds"]
+                        cell.resources = ["plant_fibers", "wild_seeds"]
                 self.grid[(x, y)] = cell
 
     def get_cell(self, x, y):
@@ -105,7 +113,13 @@ class map_manager:
             self.player_pos["x"] = new_x
             self.player_pos["y"] = new_y
             newly_revealed = self.reveal_surroundings()
-            return True, newly_revealed
+            
+            # Check if we just entered the Lab
+            entered_lab = False
+            if target_cell and target_cell.type == "lab":
+                entered_lab = True
+                
+            return True, {"revealed": newly_revealed, "entered_lab": entered_lab}
         return False, "invalid_path"
 
     def enter_regional_map(self):

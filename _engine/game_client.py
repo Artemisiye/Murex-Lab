@@ -6,7 +6,7 @@ import socket
 from screeninfo import get_monitors
 
 class GameClient:
-    def __init__(self, flask_app, title="Murex Game", width=1280, height=720, resizable=True, fullscreen=False):
+    def __init__(self, flask_app, title="Murex Game", width=1920, height=1080, resizable=True, fullscreen=False):
         self.flask_app = flask_app
         self.title = title
         self.width = width
@@ -42,21 +42,31 @@ class GameClient:
         time.sleep(0.5)
         
         # 2. Create Native Window
-        # We point it to the localhost url of our flask app
         url = f"http://127.0.0.1:{self.port}"
         
-        webview.create_window(
+        # Use a container to avoid circular references/recursion in pywebview JS exposure
+        _window_container = []
+
+        class Api:
+            def resize(self, w, h):
+                if _window_container:
+                    _window_container[0].resize(w, h)
+
+        api = Api()
+        window = webview.create_window(
             self.title, 
             url,
             width=self.width, 
             height=self.height,
             resizable=self.resizable,
             fullscreen=self.fullscreen,
-            background_color='#000000' # Prevent white flash on load
+            js_api=api,
+            background_color='#000000'
         )
+        _window_container.append(window)
         
         # 3. Start the GUI loop
-        webview.start(debug=True) # Debug allows F12 dev tools, set False for release
+        webview.start(debug=True)
 
 def launch(app, **kwargs):
     """Helper entry point."""

@@ -1,11 +1,11 @@
-let activeView = 'workshop';
+let activeView = 'map';
 let isMoving = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Survival Systems Operational.");
     setupNavigation();
     setupModal();
-    loadView('workshop');
+    loadView('map');
 });
 
 // --- Modals ---
@@ -30,16 +30,21 @@ function showModal(title, body, callback = null) {
     modalCallback = callback;
 }
 
+// --- Toasts ---
+function showToast(message, type = 'info', duration = 2500) {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), duration);
+}
+
 // --- Navigation ---
 function setupNavigation() {
     const navLinks = document.querySelectorAll('.nav-links li');
     navLinks.forEach(link => {
         link.addEventListener('click', () => {
-            document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
             const viewName = link.getAttribute('data-view');
-            const title = document.getElementById('view-title');
-            if (title) title.innerText = link.innerText;
             loadView(viewName);
         });
     });
@@ -67,6 +72,15 @@ async function loadView(viewName) {
 
         const title = document.getElementById('view-title');
         if (title) title.innerText = TITLE_MAP[viewName] || 'Murex Lab';
+
+        // Update Sidebar Active State
+        document.querySelectorAll('.nav-links li').forEach(link => {
+            if (link.getAttribute('data-view') === viewName) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
 
         if (viewName === 'workshop') initWorkshopModule();
         if (viewName === 'inventory') initInventoryModule();
@@ -228,9 +242,9 @@ async function updateCraftPreview() {
             let statsHtml = `
                 <div class="result-preview" style="text-align:center; padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:20px;">
                     <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:10px;">Forged Outcome</div>
-                    <img src="/static/assets/item_${data.output_id}.png" 
-                         onerror="this.src='/static/assets/item_oak_log.png'" 
-                         style="width:80px; height:80px; object-fit:contain; margin-bottom:15px; filter:drop-shadow(0 0 10px var(--accent));">
+                    <img src="/static/assets/${ITEM_IMAGE_MAP[data.output_id] || ('item_' + data.output_id + '.png')}" 
+                         onerror="this.src='/static/assets/logs.png'" 
+                         style="width:80px; height:80px; object-fit:contain; margin-bottom:15px; image-rendering: pixelated;">
                     <div style="font-family:'Cinzel'; font-size:1.1rem; color:#fff;">${data.output_name}</div>
                 </div>
             `;
@@ -286,6 +300,12 @@ async function initInventoryModule() {
         const goldDisplay = document.querySelector('.gold');
         if (goldDisplay) goldDisplay.innerText = `Gold: ${data.gold}`;
 
+        const header = document.querySelector('.panel-header');
+        if (header) {
+            header.innerText = data.is_backpack ? "Field Backpack" : "The Artificer's Vault";
+            header.style.color = data.is_backpack ? "#a89f8c" : "var(--accent)";
+        }
+
         let currentFilter = 'all';
         let currentSort = 'name';
 
@@ -311,9 +331,12 @@ async function initInventoryModule() {
                 const card = document.createElement('div');
                 card.className = `inventory-card type-${item.type} ${item.item_id}`;
 
+                const imgSrc = ITEM_IMAGE_MAP[item.item_id] || `item_${item.item_id}.png`;
+
                 card.innerHTML = `
                     <div class="item-visual-thumbnail">
-                        <div class="iv-shape"></div>
+                        <img src="/static/assets/${imgSrc}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="pixel-art">
+                        <div class="iv-shape" style="display:none"></div>
                     </div>
                     <div class="item-details">
                         <div class="item-name">${item.name}</div>
@@ -359,12 +382,23 @@ const TILE_SIZE = 150;
 // isMoving is declared at top
 
 // Precomputed Biome Sprites
+const ITEM_IMAGE_MAP = {
+    'iron_dagger': 'dagger.png',
+    'simple_shirt': 'shirt.png',
+    'simple_pants': 'pants.png',
+    'staff': 'staff.png',
+    'pouch': 'pouch.png',
+    'mat_oak_log': 'logs.png',
+    'oak_log': 'logs.png'
+};
+
+// Precomputed Biome Sprites
 const BIOME_TEMPLATES = {
-    'forest': '<div class="biome-marker forest"><div class="f-tree"></div><div class="f-tree"></div><div class="f-tree"></div></div>',
+    'forest': '<div class="biome-marker forest"><img src="/static/assets/woodland.png"></div>',
     'mountains': '<div class="biome-marker mountains"><div class="m-peak"></div><div class="m-peak"></div></div>',
     'river': '<div class="biome-marker river"><div class="r-path"></div></div>',
     'lab': '<div class="biome-marker lab"><div class="lab-spire"></div></div>',
-    'plains': '<div class="biome-marker plains"></div>',
+    'plains': '<div class="biome-marker plains"><img src="/static/assets/grassland.png"></div>',
     'unknown': '<div class="fow-texture"></div>'
 };
 
@@ -544,8 +578,12 @@ async function moveOnMap(direction) {
                 renderWorldGrid();
                 updateInfoPanel();
 
+                if (data.backpack_unloaded > 0) {
+                    showToast(`Vault Secured: ${data.backpack_unloaded} items stored`, 'success');
+                }
+
                 const energyDisp = document.getElementById('energy-display');
-                if (energyDisp) energyDisp.innerText = `Essence: ${data.energy}`;
+                if (energyDisp) energyDisp.innerText = `Energy: ${data.energy}`;
 
                 isMoving = false;
             }, 300);
@@ -574,6 +612,12 @@ async function initExplorationModule() {
     try {
         const res = await fetch('/api/map/explore', { method: 'POST' });
         const data = await res.json();
+
+        if (data.redirect) {
+            loadView(data.redirect);
+            return;
+        }
+
         if (data.success) {
             renderAreaGrid(data.region_data);
 
@@ -608,7 +652,7 @@ function renderAreaGrid(data) {
     grid.innerHTML = '';
 
     const ASSET_MAP = {
-        'node_oak': 'item_oak_log.png',
+        'node_oak': 'logs.png',
         'node_herbs': 'item_bitter_herbs.png',
         'node_shrub': 'item_plant_fibers.png',
         'node_grass': 'item_plant_fibers.png',
@@ -734,12 +778,7 @@ async function harvestNode(x, y) {
 
         if (data.success) {
             // Toast Notification
-            const toast = document.createElement('div');
-            toast.className = 'harvest-toast';
-            toast.innerText = `+ ${data.loot.join(', ').replace(/_/g, ' ')}`;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
-
+            showToast(`+ ${data.loot.join(', ').replace(/_/g, ' ')}`, 'success');
             renderAreaGrid(data.region_data);
         } else {
             // Silent if nothing here
@@ -793,10 +832,35 @@ function renderAreaActions(data) {
             btn.onclick = () => harvestNode(obj.x, obj.y);
         } else if (obj.interType === 'hunt') {
             label = `Hunt ${cleanName}`;
-            btn.onclick = () => showModal("Hunting", `You are tracking the ${cleanName}...`);
+            btn.onclick = async () => {
+                const res = await fetch('/api/map/hunt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ x: n.x, y: n.y })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Killed ${cleanName}: ${data.loot.join(', ').replace(/_/g, ' ')}`, 'success');
+                    renderAreaGrid(data.region_data);
+                } else {
+                    showToast(data.message, 'info');
+                }
+            };
         } else {
             label = `Confront ${cleanName}`;
-            btn.onclick = () => showModal("Combat", `Initiating combat with ${cleanName}...`);
+            btn.onclick = async () => {
+                const res = await fetch('/api/map/hunt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ x: obj.x, y: obj.y })
+                });
+                const data = await res.json();
+                if (data.success && data.combat_started) {
+                    initCombatView();
+                } else if (data.message) {
+                    showToast(data.message, 'info');
+                }
+            };
         }
 
         btn.innerHTML = `
@@ -807,8 +871,20 @@ function renderAreaActions(data) {
     });
 }
 
-// Global Nav
+// Global Nav Shortcuts
 window.addEventListener('keydown', (e) => {
+    // Shared Backspace behavior for sub-views
+    if (e.key === 'Backspace') {
+        if (activeView === 'workshop' || activeView === 'exploration' || activeView === 'inventory' || activeView === 'minions') {
+            // Prevent backspace from navigating browser back
+            // Only if not in an input field (safety check)
+            if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                e.preventDefault();
+                loadView('map');
+            }
+        }
+    }
+
     if (activeView !== 'map') return;
     const moves = { 'ArrowUp': 'up', 'w': 'up', 'ArrowDown': 'down', 's': 'down', 'ArrowLeft': 'left', 'a': 'left', 'ArrowRight': 'right', 'd': 'right' };
     if (moves[e.key]) moveOnMap(moves[e.key]);
@@ -819,19 +895,103 @@ window.addEventListener('keydown', (e) => {
 });
 
 // --- Allies ---
+// --- Allies ---
+let selectedMinionId = null;
+let cachedMinions = [];
+
 async function initMinionsModule() {
     try {
         const res = await fetch('/api/minions');
-        const minions = await res.json();
-        const list = document.getElementById('minion-list');
-        if (list) {
-            list.innerHTML = minions.map(m => `
-                <div class="minion-card">
-                    <h3>${m.name}</h3><div class="lvl">Level ${m.level}</div>
-                </div>
-            `).join('');
-        }
+        cachedMinions = await res.json();
+        renderMinionsView();
     } catch (e) { console.error("Minion Load Error:", e); }
+}
+
+function renderMinionsView() {
+    const content = document.getElementById('content-area');
+    content.innerHTML = `
+        <div class="minion-layout">
+            <div class="minion-list-panel">
+                <h3>Roster</h3>
+                <div id="minion-list" class="minion-list">
+                    ${cachedMinions.map(m => `
+                        <div class="minion-card-summary ${selectedMinionId === m.id ? 'active' : ''}" 
+                             id="minion-card-${m.id}"
+                             onclick="selectMinion('${m.id}')">
+                            <div class="m-name">${m.name}</div>
+                            <div class="m-role">Artificer</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="minion-detail-panel" id="minion-detail">
+                <div class="empty-state">Select a unit to inspect details.</div>
+            </div>
+        </div>
+    `;
+
+    // Initial Selection Logic (Only if needed)
+    if (cachedMinions.length > 0 && !selectedMinionId) {
+        selectedMinionId = cachedMinions[0].id;
+    }
+
+    if (selectedMinionId) {
+        renderMinionDetails();
+    }
+}
+
+function selectMinion(id) {
+    selectedMinionId = id;
+
+    // Update List UI without full re-render
+    document.querySelectorAll('.minion-card-summary').forEach(el => el.classList.remove('active'));
+    const activeCard = document.getElementById(`minion-card-${id}`);
+    if (activeCard) activeCard.classList.add('active');
+
+    renderMinionDetails();
+}
+
+function renderMinionDetails() {
+    const m = cachedMinions.find(x => x.id === selectedMinionId);
+    if (!m) return;
+
+    const detail = document.getElementById('minion-detail');
+    if (!detail) return;
+
+    detail.innerHTML = `
+        <div class="detail-header">
+            <h2>${m.name}</h2>
+            <div class="subtitle">Artificer Construct</div>
+        </div>
+        
+        <div class="detail-grid">
+            <div class="stat-block">
+                <h4>Base Stats</h4>
+                <div class="stat-row"><span>HP</span> <span>${m.stats.hp}</span></div>
+                <div class="stat-row"><span>ATK</span> <span>${m.stats.atk}</span></div>
+                <div class="stat-row"><span>DEF</span> <span>${m.stats.def}</span></div>
+                <div class="stat-row"><span>SPD</span> <span>${m.stats.spd}</span></div>
+                <div class="stat-row"><span>CRit R</span> <span>${Math.round(m.stats.crit_rate * 100)}%</span></div>
+                <div class="stat-row"><span>Crit D</span> <span>${Math.round(m.stats.crit_dmg * 100)}%</span></div>
+            </div>
+            
+            <div class="gear-block">
+                <h4>Equipment</h4>
+                <div class="gear-slot">
+                    <div class="slot-label">Weapon</div>
+                    <div class="slot-item">${m.gear?.weapon?.name || 'Empty'}</div>
+                </div>
+                <div class="gear-slot">
+                    <div class="slot-label">Armor</div>
+                    <div class="slot-item">${m.gear?.armor?.name || 'Empty'}</div>
+                </div>
+                 <div class="gear-slot">
+                    <div class="slot-label">Accessory</div>
+                    <div class="slot-item">${m.gear?.accessory?.name || 'Empty'}</div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 // --- Developer Tools Launcher ---
 window.addEventListener('keydown', (e) => {
@@ -841,3 +1001,207 @@ window.addEventListener('keydown', (e) => {
         console.log("Artificer Tools Initialized.");
     }
 });
+
+// --- Combat Module ---
+let combatManager = null;
+
+async function initCombatView() {
+    const container = document.getElementById('combat-container');
+    const res = await fetch('/api/combat/status');
+    const data = await res.json();
+
+    if (data.success) {
+        // Switch Viewport
+        document.getElementById('main-view').classList.add('hidden');
+        document.querySelector('.sidebar').classList.add('hidden');
+        container.classList.remove('hidden');
+
+        // Render Viewport Template
+        container.innerHTML = `
+            <div class="combat-view">
+                <div class="combat-header">
+                    <h2>Engaging Hostiles</h2>
+                    <div id="combat-turn-info">Initializing...</div>
+                </div>
+                <div class="combat-arena">
+                    <div class="combat-side enemy-side" id="enemy-team"></div>
+                    <div class="combat-center"><div id="combat-fx-layer"></div></div>
+                    <div class="combat-side player-side" id="player-team"></div>
+                </div>
+                <div class="combat-controls">
+                    <div class="skill-dock" id="skill-dock"></div>
+                    <div class="combat-status-panel">
+                        <div class="combat-log" id="combat-log"></div>
+                        <button class="flee-btn" onclick="fleeCombat()">[ FORFEIT ]</button>
+                    </div>
+                </div>
+                <div class="combat-result-overlay hidden" id="combat-result">
+                    <h1 id="result-title">VICTORY</h1>
+                    <div class="rewards-list" id="rewards-list"></div>
+                    <button class="primary-btn" onclick="returnFromCombat()">Continue</button>
+                </div>
+            </div>
+        `;
+
+        combatManager = new CombatManager(data.state);
+        combatManager.startTickLoop();
+    }
+}
+
+class CombatManager {
+    constructor(state) {
+        this.state = state;
+        this.isTicking = false;
+        this.selectedSkill = null;
+        this.updateUI();
+    }
+
+    async startTickLoop() {
+        if (this.isTicking || this.state.is_finished) return;
+        this.isTicking = true;
+
+        while (this.isTicking && !this.state.is_finished) {
+            const res = await fetch('/api/combat/tick', { method: 'POST' });
+            const data = await res.json();
+            this.state = data.state;
+            this.updateUI();
+
+            if (data.ready_unit) {
+                this.isTicking = false;
+                this.handleTurn(data.ready_unit);
+                break;
+            }
+            // Wait for 1 tick interval
+            await new Promise(r => setTimeout(r, 100));
+        }
+    }
+
+    updateUI() {
+        const pTeam = document.getElementById('player-team');
+        const eTeam = document.getElementById('enemy-team');
+        const log = document.getElementById('combat-log');
+
+        if (!pTeam || !eTeam || !log) return;
+
+        // Render Log
+        log.innerHTML = this.state.log.map(msg => `<div>${msg}</div>`).join('');
+        log.scrollTop = log.scrollHeight;
+
+        // Render Entities (Simple 2D Thumbnails)
+        const renderEntity = (e) => `
+            <div class="combatant-card ${e.id === this.state.active_unit_id ? 'active' : ''} ${e.is_dead ? 'dead' : ''}" 
+                 id="entity-${e.id}" onclick="combatManager.selectTarget('${e.id}')">
+                <div class="unit-thumbnail ${e.side}">
+                    <div class="unit-icon">${e.name.charAt(0)}</div>
+                </div>
+                <div class="bar-container"><div class="hp-bar" style="width: ${(e.hp / e.max_hp) * 100}%"></div></div>
+                <div class="bar-container"><div class="atb-bar" style="width: ${Math.min(100, e.atb / 10)}%"></div></div>
+                <div class="combatant-name">${e.name}</div>
+                ${e.is_dead ? '<div class="death-tag">DEFEATED</div>' : ''}
+            </div>
+        `;
+
+        pTeam.innerHTML = this.state.entities.filter(e => e.side === 'player').map(renderEntity).join('');
+        eTeam.innerHTML = this.state.entities.filter(e => e.side === 'enemy').map(renderEntity).join('');
+
+        // Turn Info
+        const active = this.state.entities.find(e => e.id === this.state.active_unit_id);
+        const turnInfo = document.getElementById('combat-turn-info');
+        if (turnInfo) turnInfo.innerText = active ? `Turn: ${active.name}` : "Advancing Time...";
+
+        if (this.state.is_finished) {
+            this.showResult();
+        }
+    }
+
+    handleTurn(unitId) {
+        const unit = this.state.entities.find(e => e.id === unitId);
+        if (unit.side === 'enemy') {
+            setTimeout(() => this.autoEnemyTurn(unit), 1000);
+        } else {
+            this.renderSkills(unit);
+        }
+    }
+
+    renderSkills(unit) {
+        const dock = document.getElementById('skill-dock');
+        if (!dock) return;
+        // For now, hardcoded skills for Lead Artificer. Future: Fetch from unit.skills
+        const skills = ['skill_basic_strike', 'skill_quick_slash', 'skill_arcane_bolt'];
+
+        dock.innerHTML = skills.map(sid => `
+            <button class="skill-btn" id="btn-${sid}" onclick="combatManager.selectSkill('${sid}')">
+                ${sid.replace('skill_', '').replace('_', ' ')}
+            </button>
+        `).join('');
+    }
+
+    selectSkill(sid) {
+        this.selectedSkill = sid;
+        document.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById(`btn-${sid}`);
+        if (btn) btn.classList.add('active');
+        showToast("Select a target", "info");
+    }
+
+    async selectTarget(tid) {
+        if (!this.selectedSkill) return;
+
+        const res = await fetch('/api/combat/act', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ skill_id: this.selectedSkill, target_id: tid })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            this.state = data.state;
+            this.selectedSkill = null;
+            const dock = document.getElementById('skill-dock');
+            if (dock) dock.innerHTML = '';
+            this.updateUI();
+            this.startTickLoop();
+        }
+    }
+
+    async autoEnemyTurn(unit) {
+        // AI: Target lowest HP player
+        const players = this.state.entities.filter(e => e.side === 'player' && !e.is_dead);
+        if (players.length === 0) return;
+        players.sort((a, b) => a.hp - b.hp);
+        const target = players[0];
+
+        const res = await fetch('/api/combat/act', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ skill_id: 'skill_basic_strike', target_id: target.id })
+        });
+        const data = await res.json();
+        this.state = data.state;
+        this.updateUI();
+        this.startTickLoop();
+    }
+
+    showResult() {
+        const overlay = document.getElementById('combat-result');
+        if (!overlay) return;
+        overlay.classList.remove('hidden');
+        const title = document.getElementById('result-title');
+        if (title) title.innerText = this.state.winner === 'player' ? "VICTORY" : "DEFEAT";
+    }
+}
+
+function returnFromCombat() {
+    document.getElementById('combat-container').classList.add('hidden');
+    document.getElementById('main-view').classList.remove('hidden');
+    document.querySelector('.sidebar').classList.remove('hidden');
+    combatManager = null;
+    // Refresh map state
+    exploreCurrentArea();
+}
+
+function fleeCombat() {
+    if (confirm("Forfeiting will result in losing all unsaved loot. Proceed?")) {
+        returnFromCombat();
+    }
+}

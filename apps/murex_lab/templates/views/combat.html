@@ -1,0 +1,45 @@
+<div class="combat-view" id="combat-view">
+    <div class="combat-header">
+        <h2>Engaging Hostiles</h2>
+        <div id="combat-turn-info">Waiting for next turn...</div>
+    </div>
+
+    <div class="combat-arena">
+        <!-- Enemy Team -->
+        <div class="combat-side enemy-side" id="enemy-team">
+            <!-- Dynamic monsters here -->
+        </div>
+
+        <!-- Battlefield Effects / Center -->
+        <div class="combat-center">
+            <div id="combat-fx-layer"></div>
+        </div>
+
+        <!-- Player Team -->
+        <div class="combat-side player-side" id="player-team">
+            <!-- Dynamic minions here -->
+        </div>
+    </div>
+
+    <!-- Combat Interface -->
+    <div class="combat-controls" id="combat-controls">
+        <div class="skill-dock" id="skill-dock">
+            <!-- Dynamic skills here -->
+        </div>
+
+        <div class="combat-status-panel">
+            <div class="combat-log" id="combat-log">
+                <div>Encounter started...</div>
+            </div>
+            <button class="flee-btn" onclick="fleeCombat()">[ FORFEIT ]</button>
+        </div>
+    </div>
+
+    <!-- Victory/Defeat Overlay -->
+    <div class="combat-result-overlay hidden" id="combat-result">
+        <h1 id="result-title">VICTORY</h1>
+        <p id="result-message"></p>
+        <div class="rewards-list" id="rewards-list"></div>
+        <button class="primary-btn" onclick="returnFromCombat()">Continue</button>
+    </div>
+</div>

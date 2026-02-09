@@ -48,10 +48,10 @@ T_eff = Clamp(T - E + 1, 0, 5)
 - Hammada - Dry, hot and stone landscape. Mineral-rich. #f0e171
 - Erg - Dry, hot and sandy landscape. #fff899
 - Steppe - Dry and cold grass open plains. #e7f79c
-- Grassland - Green grassy open plains, richer soil. #95c663
+- Grassland - Green grassy open plains, richer soil. #95c663ff
 - Shrubland - Woody shrubs and bushes, patchy grass. Often transitional. #cccc00
 - Maquis - Dense, thick and rugged evergreen shrublands. #667621
-- Woodland - Open canopy-trees present but spaced. #7aad43
+- Woodland - Open canopy-trees present but spaced. #7aad43ff
 - Forest - Closed canopy. #39912d
 - Beach - #fff899
 - River - #85d1e0ff

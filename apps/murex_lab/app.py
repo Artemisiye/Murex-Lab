@@ -12,10 +12,13 @@ from modules.crafting import CraftingManager
 from modules.inventory import Inventory
 from modules.world_map import map_manager
 from modules.minions import Minion
+from modules.combat_engine import CombatEngine, SKILL_REGISTRY
+from modules.monsters import Monster, MONSTER_TEMPLATES
 
 # Paths
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
 SAVE_PATH = os.path.join(DATA_PATH, 'player_inventory.json')
+BACKPACK_PATH = os.path.join(DATA_PATH, 'player_backpack.json')
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -24,11 +27,15 @@ app.config['SECRET_KEY'] = 'murex_lab_secret_key'
 # --- Initialize Modules ---
 crafting_system = CraftingManager(DATA_PATH)
 player_inventory = Inventory(SAVE_PATH)
+player_backpack = Inventory(BACKPACK_PATH)
 world_map = map_manager(DATA_PATH)
+
+# Combat State
+active_combat = None # Global instance of CombatEngine
 
 # Player Team (Starting Minion)
 player_minions = [
-    Minion("m_001", "Lead Artificer", star_rating=3, level=10)
+    Minion("m_001", "Lead Artificer")
 ]
 
 def initialize_starting_equipment():
@@ -72,6 +79,14 @@ def classify_item_by_tags(item_obj):
     if tags.has_tag("Item.Class.Component"): return "component"
     if tags.has_tag("Item.Class.Material"): return "material"
     return "item"
+
+def get_active_inventory():
+    """Returns the inventory instance based on player location."""
+    # Lab is at the center of the world map
+    center = world_map.size // 2
+    if world_map.player_pos['x'] == center and world_map.player_pos['y'] == center:
+        return player_inventory
+    return player_backpack
 
 # --- Routes ---
 @app.route('/')
@@ -147,7 +162,7 @@ def get_valid_components(bp_id, slot_id):
         return jsonify([])
 
     inventory_items = []
-    inv = player_inventory.get_all()
+    inv = get_active_inventory().get_all()
     
     for key, inv_item in inv.items():
         # Check unified registry or recursive blueprint tags
@@ -165,8 +180,9 @@ def get_valid_components(bp_id, slot_id):
 
 @app.route('/api/inventory')
 def get_inventory():
-    """Returns the full player inventory and gold."""
-    inv = player_inventory.get_all()
+    """Returns the active inventory and gold."""
+    active_inv = get_active_inventory()
+    inv = active_inv.get_all()
     data = []
     for key, item in inv.items():
         name = f"Unknown ({item.item_id})"
@@ -192,8 +208,10 @@ def get_inventory():
             "stats": item.data.get('stats', {})
         })
     return jsonify({
-        "gold": player_inventory.gold,
-        "items": data
+        "gold": active_inv.gold if active_inv == player_inventory else 0, # Gold only in lab vault
+        "items": data,
+        "is_backpack": active_inv == player_backpack,
+        "energy": player_minions[0].current_energy
     })
 
 @app.route('/api/minions')
@@ -209,9 +227,10 @@ def craft_item():
     comp_map = data.get('components', {})\
 
     # 1. Preview to get stats and validate
+    active_inv = get_active_inventory()
     id_map = {}
     for sid, inv_key in comp_map.items():
-        item = player_inventory.items.get(inv_key)
+        item = active_inv.items.get(inv_key)
         if item:
             id_map[sid] = item.item_id
 
@@ -224,7 +243,7 @@ def craft_item():
         for sid, inv_key in comp_map.items():
             slot = next((s for s in bp.slots if s.id == sid), None)
             if slot and not slot.catalyst:
-                player_inventory.remove_item(inv_key, 1)
+                active_inv.remove_item(inv_key, 1)
         
         # 3. Add product
         final_id = bp.output_id if bp.output_id else bp.id
@@ -235,7 +254,7 @@ def craft_item():
         
         product_name = f"Custom {bp.name}" if category in ["weapon", "equipment"] else bp.name
         
-        player_inventory.add_item(final_id, 1, {"stats": result['stats'], "name": product_name})
+        active_inv.add_item(final_id, 1, {"stats": result['stats'], "name": product_name})
         
         return jsonify({
             "success": True, 
@@ -252,9 +271,10 @@ def preview_craft():
     bp_id = data.get('blueprint_id')
     comp_map = data.get('components', {})
 
+    active_inv = get_active_inventory()
     id_map = {}
     for sid, inv_key in comp_map.items():
-        item = player_inventory.items.get(inv_key)
+        item = active_inv.items.get(inv_key)
         if item:
             id_map[sid] = item.item_id
 
@@ -301,10 +321,26 @@ def move_player():
     success, result = world_map.move_player(dx, dy)
     
     if success:
+        newly_revealed = result.get('revealed', [])
+        
+        # Auto-unload backpack if entered Lab
+        unloaded_count = 0
+        if result.get('entered_lab'):
+            # Filter function to keep 'equipped' items in backpack (or other criteria)
+            # For now, we transfer EVERYTHING that isn't explicitly marked
+            def should_transfer(item):
+                if item.data.get('keep_in_backpack'): return False
+                # Future: if item.data.get('equipped'): return False
+                return True
+                
+            unloaded_count = player_backpack.transfer_to(player_inventory, filter_func=should_transfer)
+
         return jsonify({
             "success": True,
-            "new_cells": result, # Newly discovered cells if any
-            "player_pos": world_map.player_pos
+            "new_cells": newly_revealed,
+            "player_pos": world_map.player_pos,
+            "backpack_unloaded": unloaded_count,
+            "energy": player_minions[0].current_energy
         })
     else:
         return jsonify({"success": False, "message": result})
@@ -314,7 +350,7 @@ def explore_location():
     """Enters the high-granularity regional map."""
     cell = world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y'])
     if cell and cell.type == 'lab':
-        return jsonify({"success": False, "message": "The Lab is fully mapped. Use the Workshop for facilities."})
+        return jsonify({"success": True, "redirect": "workshop"})
         
     regional = world_map.enter_regional_map()
     return jsonify({"success": True, "region_data": regional.to_dict()})
@@ -331,9 +367,18 @@ def region_move():
     elif direction == 'left': dx = -1
     elif direction == 'right': dx = 1
     
-    regional = world_map.enter_regional_map()
+    cell = world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y'])
+    if not cell or not cell.regional_map:
+        return jsonify({"success": False, "message": "No area active."})
+        
+    regional = cell.regional_map
+    
     if regional.move_player(dx, dy):
-        return jsonify({"success": True, "region_data": regional.to_dict()})
+        return jsonify({
+            "success": True, 
+            "region_data": regional.to_dict(),
+            "energy": player_minions[0].current_energy
+        })
     return jsonify({"success": False})
 
 @app.route('/api/map/harvest', methods=['POST'])
@@ -357,9 +402,10 @@ def harvest_node():
         return jsonify({"success": False, "message": "You must stand directly on the resource to harvest."})
         
     # Tool Check
+    active_inv = get_active_inventory()
     if node.tool_required:
         has_tool = False
-        for inv_id, inv_item in player_inventory.get_all().items():
+        for inv_id, inv_item in active_inv.get_all().items():
             # Check tags of base item
             base = crafting_system.items.get(inv_item.item_id) or crafting_system.blueprints.get(inv_item.item_id)
             if base and base.tags.has_tag(node.tool_required):
@@ -372,16 +418,130 @@ def harvest_node():
 
     loot = cell.regional_map.harvest(nx, ny)
     if loot:
+        active_inv = get_active_inventory()
         for item_id in loot:
-            player_inventory.add_item(item_id, random.randint(1, 3))
+            active_inv.add_item(item_id, random.randint(1, 3))
             
         return jsonify({
             "success": True, 
             "loot": loot,
-            "region_data": cell.regional_map.to_dict()
+            "region_data": cell.regional_map.to_dict(),
+            "energy": player_minions[0].current_energy
         })
         
     return jsonify({"success": False, "message": "Resource exhausted or missing."})
+
+@app.route('/api/map/hunt', methods=['POST'])
+def hunt_entity():
+    """Hunts an entity at specific coordinates in the current regional map."""
+    data = request.json
+    nx, ny = data.get('x'), data.get('y')
+    
+    cell = world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y'])
+    if not cell or not cell.regional_map:
+        return jsonify({"success": False, "message": "No area active."})
+        
+    # Proximity Check
+    px, py = cell.regional_map.player_pos['x'], cell.regional_map.player_pos['y']
+    if px != nx or py != ny:
+        return jsonify({"success": False, "message": "You must be on the same tile to hunt."})
+
+    loot = cell.regional_map.hunt(nx, ny)
+    if loot:
+        # Trigger Combat Encounter
+        global active_combat
+        # For now, we spawn a single monster based on the entity ID (e.g. animal_boar)
+        entity_id = "animal_boar" # Default
+        # Find the entity we just hunted to get its type (simple logic for now)
+        template = MONSTER_TEMPLATES.get(entity_id)
+        enemy = Monster(entity_id, template['name'], template['stats'], template['skills'])
+        
+        active_combat = CombatEngine(player_minions, [enemy])
+        
+        return jsonify({
+            "success": True, 
+            "combat_started": True,
+            "loot": loot,
+            "region_data": cell.regional_map.to_dict(),
+            "energy": player_minions[0].current_energy
+        })
+        
+    return jsonify({"success": False, "message": "No target found or escaped."})
+
+@app.route('/api/combat/status')
+def get_combat_status():
+    global active_combat
+    if not active_combat:
+        return jsonify({"success": False, "message": "No active combat."})
+    return jsonify({"success": True, "state": active_combat.get_state()})
+
+@app.route('/api/combat/tick', methods=['POST'])
+def combat_tick():
+    global active_combat
+    if not active_combat or active_combat.is_finished:
+        return jsonify({"success": False})
+        
+    ready_unit = active_combat.tick()
+    return jsonify({
+        "success": True, 
+        "ready_unit": ready_unit.source.id if ready_unit else None,
+        "state": active_combat.get_state()
+    })
+
+@app.route('/api/combat/act', methods=['POST'])
+def combat_act():
+    global active_combat
+    if not active_combat or active_combat.is_finished:
+        return jsonify({"success": False})
+
+    data = request.json
+    skill_id = data.get('skill_id')
+    target_id = data.get('target_id')
+    
+    # 1. Find the skill config
+    skill = SKILL_REGISTRY.get(skill_id)
+    if not skill:
+        return jsonify({"success": False, "message": "Invalid skill."})
+        
+    # 2. Find attacker & targets
+    attacker = active_combat.active_unit
+    target_entity = next((e for e in active_combat.entities if e.source.id == target_id), None)
+    
+    if not attacker or not target_entity:
+        return jsonify({"success": False, "message": "Invalid combatants."})
+        
+    # 3. Execute
+    results = active_combat.execute_skill(
+        attacker, 
+        skill_id, 
+        [target_entity], 
+        skill['scaling'], 
+        skill['cooldown']
+    )
+    
+    # 4. Handle Combat End (Rewards)
+    rewards = None
+    if active_combat.is_finished:
+        if active_combat.winner == 'player':
+            # Add loot/gold logic here
+            rewards = {"gold": 25, "items": []}
+            player_inventory.gold += rewards['gold']
+            # active_combat = None # Keep state for result display?
+        else:
+            # Handle Defeat: Set minions out of commission
+            for minion in player_minions:
+                minion.set_defeated()
+            # Clear backpack (loss logic)
+            player_backpack.items = {}
+            player_backpack.save()
+            rewards = {"message": "Team Defeated. Backpack lost."}
+
+    return jsonify({
+        "success": True, 
+        "results": results, 
+        "state": active_combat.get_state(),
+        "rewards": rewards
+    })
 
 # --- Debugging & Tools API ---
 @app.route('/debug')
@@ -398,10 +558,9 @@ def debug_clear_inventory():
 @app.route('/api/debug/backpack/clear', methods=['POST'])
 def debug_clear_backpack():
     """Cheat: empties the backpack."""
-    # System has no backpack yet, clearing inventory
-    player_inventory.items = {}
-    player_inventory.save()
-    return jsonify({"success": True, "message": "Vault Purged."})
+    player_backpack.items = {}
+    player_backpack.save()
+    return jsonify({"success": True, "message": "Field Backpack Purged."})
 
 @app.route('/api/debug/inventory/add', methods=['POST'])
 def debug_add_item():
@@ -410,8 +569,9 @@ def debug_add_item():
     item_id = data.get('item_id')
     quantity = int(data.get('quantity', 1))
     
-    player_inventory.add_item(item_id, quantity)
-    return jsonify({"success": True, "message": f"Added x{quantity} {item_id}"})
+    active_inv = get_active_inventory()
+    active_inv.add_item(item_id, quantity)
+    return jsonify({"success": True, "message": f"Added x{quantity} {item_id} to {'Backpack' if active_inv == player_backpack else 'Vault'}"})
 
 if __name__ == "__main__":
     # Launch via Capsule Engine

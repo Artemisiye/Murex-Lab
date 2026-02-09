@@ -86,6 +86,42 @@ When standing on a world map tile, the player can explore the regional map of th
     * Amount
     * Value
 
+### 5 **Actors**
+
+* **Stats**
+    * **HP** - Health Points
+    * **ATK** - Attack Power
+    * **DEF** - Defense
+    * **SPD** - Speed
+    * **CR** - Critical Hit Chance
+    * **CD** - Critical Hit Damage
+
+### 6 **Combat**
+
+### 7 **Equipment**
+* **Equipment Slots** - The player can equip items in the following slots:
+    * Head - Helmet, hoods, circlets, etc.
+        HP+
+    * Chest - Armor, robes, etc.
+        HP%
+        DEF%
+        ATK%
+    * Legs - Pants, skirts, etc.
+        DEF+
+    * Feet - Shoes, boots, etc.
+        SPD
+        HP%
+        DEF%
+        ATK%
+    * Main Hand - Weapons, tools, etc.
+        ATK%
+        CD%
+        CR%
+    * Off Hand - Shields, weapons, tools, etc.
+        ATK+
+    * Accessory 1 - Rings, amulets, etc.
+    * Accessory 2 - Rings, amulets, etc.
+
 
 ## **Interaction Logic**
 ### 1 **Harvesting Pipeline**
