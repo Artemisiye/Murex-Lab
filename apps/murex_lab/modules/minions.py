@@ -24,14 +24,17 @@ class Minion:
         self.max_energy = 100
         self.current_energy = 100
         
+        # Recovery/Death mechanics
+        self.is_defeated = False
+        self.recovery_until = None # datetime object
+        
         # Gear Slots
         self.engravings = {} # Slot 1-6 { "1": EngravingObject, ... }
         self.weapons = [None, None] # Slot 1 & 2 [WeaponObject, WeaponObject]
         self.trinket = None
         
-        # Recovery/Death mechanics
-        self.is_defeated = False
-        self.recovery_until = None # datetime object
+        # Health tracking
+        self.current_hp = self.get_stat("hp")
         
     def get_stat(self, stat_name):
         """Calculates final stat including fixed base and gear bonuses."""

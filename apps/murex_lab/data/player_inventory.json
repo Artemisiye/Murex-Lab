@@ -50,7 +50,7 @@
         },
         "plant_fibers": {
             "item_id": "plant_fibers",
-            "quantity": 33,
+            "quantity": 35,
             "data": {}
         },
         "bitter_herbs": {
@@ -60,7 +60,7 @@
         },
         "wild_seeds": {
             "item_id": "wild_seeds",
-            "quantity": 21,
+            "quantity": 23,
             "data": {}
         },
         "rough_stone": {
