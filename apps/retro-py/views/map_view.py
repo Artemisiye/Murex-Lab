@@ -61,7 +61,7 @@ class MapView:
                 scale = game_state.get('scale', 1)
                 vx, vy = mx // scale, my // scale
                 
-                margin = 5
+                margin = 8
                 py_base = 270 - margin # buffer height is 270
                 
                 nav_rects = {
@@ -112,7 +112,7 @@ class MapView:
                 self.arrow_atlas = None
                 self.arrows = None
 
-        margin = 5
+        margin = 8
         content_w = buffer.get_width() - (margin * 2)
         content_h = buffer.get_height() - (margin + 35) # Below header
         
@@ -155,7 +155,7 @@ class MapView:
             px, py = world_map.player_pos['x'], world_map.player_pos['y']
             
             # Draw a dark backing for the padded area
-            pygame.draw.rect(buffer, (10, 10, 10), (margin, 35, content_w, content_h))
+            pygame.draw.rect(buffer, (10, 10, 10), (margin, 32, content_w, content_h))
             
             # View dimensions in cells
             view_w = content_w // (cell_size + border) + 2
@@ -163,10 +163,10 @@ class MapView:
             
             # Offset to center player
             off_x = margin + (content_w // 2) - (px * (cell_size + border)) - (cell_size // 2)
-            off_y = 35 + (content_h // 2) - (py * (cell_size + border)) - (cell_size // 2)
+            off_y = 31 + (content_h // 2) - (py * (cell_size + border)) - (cell_size // 2)
 
             # Clipping
-            clip_rect = pygame.Rect(margin, 35, content_w, content_h)
+            clip_rect = pygame.Rect(margin, 31, content_w, content_h)
             old_clip = buffer.get_clip()
             buffer.set_clip(clip_rect)
 
@@ -208,21 +208,30 @@ class MapView:
             buffer.set_clip(old_clip)
 
             # OVERLAY PANELS
+            # TUI Grid alignment (multiples of 8)
             # 1. Location Details (Top Right)
-            detail_panel = Panel(buffer.get_width() - 100 - margin, 40, 100, 90, title="Loc~ Det~s")
+            lx, ly, lw, lh = buffer.get_width() - 112 - margin, 40, 112, 64
+            
+            # Chunky TUI Shadow (Black, 4px offset)
+            pygame.draw.rect(buffer, (5, 4, 3), (lx + 4, ly + 4, lw, lh))
+            detail_panel = Panel(lx, ly, lw, lh, title="LOC~ DATA")
             detail_panel.draw(buffer)
+            
             current_cell = world_map.get_cell(px, py)
             if current_cell:
                 if body_f:
-                    body_f.draw(buffer, f"POS: {px},{py}", 385, 75, COLOR_ACCENT)
-                    body_f.draw(buffer, f"TYPE: {current_cell.type.upper()}", 385, 95, COLOR_FG)
+                    body_f.draw(buffer, f"POS: {px},{py}", lx + 8, ly + 32, COLOR_ACCENT)
+                    body_f.draw(buffer, f"ID: {current_cell.type.upper()[:8]}", lx + 8, ly + 48, COLOR_FG)
 
-            # 3. Navigation Arrows (Bottom Left, No Title)
-            nav_panel = Panel(margin, buffer.get_height() - 35 - margin, 50, 35, title=None)
+            # 2. Navigation Arrows ("D-Pad", Bottom Left)
+            nx, ny, nw, nh = margin, buffer.get_height() - 40 - margin, 56, 40
+            
+            # Chunky TUI Shadow (Black, 4px offset)
+            pygame.draw.rect(buffer, (5, 4, 3), (nx + 4, ny + 4, nw, nh))
+            nav_panel = Panel(nx, ny, nw, nh, title=None)
             nav_panel.draw(buffer)
+            
             if hasattr(self, 'arrows') and self.arrows:
-                py_base = buffer.get_height() - margin
-                
                 # Mouse Pos for Hover
                 mx, my = pygame.mouse.get_pos()
                 scale = game_state.get('scale', 1)
@@ -232,13 +241,13 @@ class MapView:
                     rect = pygame.Rect(x, y, 7, 7)
                     is_hover = rect.inflate(4, 4).collidepoint(vx, vy)
                     if is_hover:
-                        # Draw a subtle hover glow
                         pygame.draw.rect(buffer, (60, 55, 50), rect.inflate(2, 2), 0, 1)
                     buffer.blit(self.arrows[dir], (x, y))
 
-                draw_btn("up",    margin + 21, py_base - 28)
-                draw_btn("down",  margin + 21, py_base - 13)
-                draw_btn("left",  margin + 6,  py_base - 13)
-                draw_btn("right", margin + 36, py_base - 13)
+                # Centered D-Pad layout inside 56x40 panel
+                draw_btn("up",    nx + 24, ny + 8)
+                draw_btn("down",  nx + 24, ny + 24)
+                draw_btn("left",  nx + 8,  ny + 24)
+                draw_btn("right", nx + 40, ny + 24)
             elif h2_f:
-                h2_f.draw(buffer, "+", margin + 25, buffer.get_height() - 30 - margin, COLOR_FG)
+                h2_f.draw(buffer, "+", nx + 24, ny + 24, COLOR_FG)

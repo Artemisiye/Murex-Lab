@@ -2,10 +2,10 @@
 
 ## Fonts
 
-Header 1: fixedsys
-Header 2: press-start-2p
-Body: minecraftia
-Small Text: silkscreen-400
+Header 1: fixedsys (6x9)
+Header 2: press-start-2p (7x7)
+Body: minecraftia (5x7)
+Small Text: silkscreen-400 (5x5)
 
 
 ## Arrows

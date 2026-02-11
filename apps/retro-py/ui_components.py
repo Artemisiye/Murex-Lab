@@ -76,7 +76,7 @@ class Label(Widget):
         
         # Width/Height will be determined by font
         w = font.get_width(text) if font else 0
-        h = font.metadata.get("effective_h", 12) if font else 12
+        h = font.effective_h if font else 12
         super().__init__(x, y, w, h)
         self.font = font
         self.text = text
@@ -147,7 +147,7 @@ class Button(Widget):
             font = styles.get_font(role)
         
         if w is None: w = font.get_width(text) + 10 if font else 60
-        if h is None: h = font.metadata.get("effective_h", 12) + 6 if font else 18
+        if h is None: h = font.effective_h + 6 if font else 18
         super().__init__(x, y, w, h)
         self.font = font
         self.text = text

@@ -3,6 +3,7 @@
     "req_size": 15,
     "cap_h": 14,
     "threshold": 127,
+    "effective_w": -1,
     "effective_h": 8,
     "chars": {
         " ": {

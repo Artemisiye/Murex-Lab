@@ -4,13 +4,16 @@ import os
 
 class SpriteFont:
     def __init__(self, json_path):
+        self.name = os.path.basename(json_path).replace(".json", "")
         self.dir = os.path.dirname(json_path)
         with open(json_path, "r") as f:
             self.metadata = json.load(f)
         
-        image_path = os.path.join(self.dir, os.path.basename(json_path).replace(".json", ".png"))
+        image_path = os.path.join(self.dir, self.name + ".png")
         self.image = pygame.image.load(image_path).convert_alpha()
         self.chars = self.metadata["chars"]
+        self.effective_w = self.metadata.get("effective_w", 6)
+        self.effective_h = self.metadata.get("effective_h", 9)
 
     def draw(self, surface, text, x, y, color=None):
         """
@@ -20,7 +23,7 @@ class SpriteFont:
         current_x = x
         for char in text:
             if char == " ":
-                current_x += 4 # Standard space
+                current_x += self.effective_w if self.effective_w > 0 else 4
                 continue
             
             if char in self.chars:
@@ -47,7 +50,7 @@ class SpriteFont:
         w = 0
         for char in text:
             if char == " ":
-                w += 4
+                w += self.effective_w if self.effective_w > 0 else 4
             elif char in self.chars:
                 w += self.chars[char]["adv"]
         return w

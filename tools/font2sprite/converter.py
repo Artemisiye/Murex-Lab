@@ -56,7 +56,7 @@ class FontApp:
         self.overrides = {} # dict of char -> { 'advance_adj': 0 }
 
     def browse_font(self):
-        val = filedialog.askopenfilename(initialdir=os.path.dirname(self.font_path) if self.font_path else "E:\\Emerald Vimana\\Murex-Lab\\apps\\retro\\static\\fonts")
+        val = filedialog.askopenfilename(initialdir=os.path.dirname(self.font_path) if self.font_path else "E:\\Emerald Vimana\\Murex-Lab\\apps\\retro-py\\assets\\vector-fonts")
         if val: 
             self.font_path = val
             self.needs_update = True

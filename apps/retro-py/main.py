@@ -19,9 +19,13 @@ def main():
     
     # Virtual resolution (Retro native)
     V_WIDTH, V_HEIGHT = 480, 270
-    SCALE = 4
+    config = {
+        "scale": 4,
+        "v_width": V_WIDTH,
+        "v_height": V_HEIGHT
+    }
     
-    screen = pygame.display.set_mode((V_WIDTH * SCALE, V_HEIGHT * SCALE))
+    screen = pygame.display.set_mode((V_WIDTH * config["scale"], V_HEIGHT * config["scale"]), pygame.RESIZABLE)
     pygame.display.set_caption("Murex Lab - Retro")
     
     video_buffer = pygame.Surface((V_WIDTH, V_HEIGHT))
@@ -70,7 +74,7 @@ def main():
     from views.inventory_view import InventoryView
     from views.minions_view import MinionsView
     from views.settings_view import SettingsView
-
+ 
     view_instances = {
         "MAP": MapView(),
         "WORKSHOP": WorkshopView(),
@@ -78,6 +82,9 @@ def main():
         "MINIONS": MinionsView(),
         "SETTINGS": SettingsView()
     }
+    
+    active_tab = tabs[active_tab_index]
+    active_view = view_instances.get(active_tab)
     
     clock = pygame.time.Clock()
     DEBUG = False
@@ -91,47 +98,57 @@ def main():
         "bloom_offset": 1
     }
     last_crt_settings = crt_settings.copy()
-    crt_overlay = pygame.Surface((V_WIDTH * SCALE, V_HEIGHT * SCALE), pygame.SRCALPHA)
+    last_scale = config["scale"]
+    crt_overlay = pygame.Surface((V_WIDTH * config["scale"], V_HEIGHT * config["scale"]), pygame.SRCALPHA)
 
-    def update_crt_overlay(surface, settings):
+    def update_crt_overlay(surface, settings, scale):
         surface.fill((0, 0, 0, 0))
         if not settings["enabled"]:
             return
             
         # 1. Softened Phosphor Scanlines
         s_alpha = settings["scanline_alpha"]
-        for y in range(0, V_HEIGHT * SCALE, SCALE):
-            pygame.draw.line(surface, (10, 10, 40, s_alpha), (0, y), (V_WIDTH * SCALE, y))
-            if y + 1 < V_HEIGHT * SCALE:
-                pygame.draw.line(surface, (10, 10, 40, int(s_alpha * 0.4)), (0, y + 1), (V_WIDTH * SCALE, y + 1))
+        for y in range(0, V_HEIGHT * scale, scale):
+            pygame.draw.line(surface, (10, 10, 40, s_alpha), (0, y), (V_WIDTH * scale, y))
+            if y + 1 < V_HEIGHT * scale:
+                pygame.draw.line(surface, (10, 10, 40, int(s_alpha * 0.4)), (0, y + 1), (V_WIDTH * scale, y + 1))
 
         # 2. Vertical Aperture Grille
         g_alpha = settings["grille_alpha"]
-        for x in range(0, V_WIDTH * SCALE, 2):
+        for x in range(0, V_WIDTH * scale, 2):
             if (x // 2) % 3 == 0:
-                pygame.draw.line(surface, (0, 0, 0, g_alpha), (x, 0), (x, V_HEIGHT * SCALE))
+                pygame.draw.line(surface, (0, 0, 0, g_alpha), (x, 0), (x, V_HEIGHT * scale))
 
         # 3. Micro Shadow Mask
-        for y in range(0, V_HEIGHT * SCALE, 2):
-            for x in range(0, V_WIDTH * SCALE, 2):
+        # Optimized: only draw every few pixels for mask effect
+        for y in range(0, V_HEIGHT * scale, 2):
+            for x in range(0, V_WIDTH * scale, 2):
                 if (x // 2 + y // 2) % 2 == 0:
                     surface.set_at((x, y), (0, 0, 0, 8))
 
-    update_crt_overlay(crt_overlay, crt_settings)
+    update_crt_overlay(crt_overlay, crt_settings, config["scale"])
 
     # Test UI Components
     fleet_panel = None
     
     while True:
+        active_tab = tabs[active_tab_index]
+        active_view = view_instances.get(active_tab)
+        
         mx, my = pygame.mouse.get_pos()
         # Scale mouse to virtual coords
-        vmx, vmy = mx // SCALE, my // SCALE
+        scale = config["scale"]
+        vmx, vmy = mx // scale, my // scale
         click = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            
+            if event.type == pygame.VIDEORESIZE:
+                # Handle window resize if needed, otherwise we override with scale setting
+                pass
             
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F1: # Toggle debug
@@ -144,8 +161,13 @@ def main():
                     active_tab_index = (active_tab_index - 1) % len(tabs)
                 else:
                     active_tab_index = (active_tab_index + 1) % len(tabs)
-                active_tab = tabs[active_tab_index]
-                selection_index = 0 # Reset selection on tab change
+            
+            # Tab Change Side Effects
+            active_tab = tabs[active_tab_index]
+            active_view = view_instances.get(active_tab)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+                if active_view and hasattr(active_view, "selection_index"):
+                    active_view.selection_index = 0
             
             # View-specific Handling (Keyboard, Mouse, etc)
             game_state = {
@@ -155,16 +177,18 @@ def main():
                 "crafting_system": crafting_system,
                 "player_minions": player_minions,
                 "fonts": fonts,
-                "scale": SCALE,
+                "all_fonts": fonts,
+                "scale": scale,
+                "config": config,
                 "crt_settings": crt_settings
             }
             
-            active_view = view_instances.get(active_tab)
             if active_view:
                 result = active_view.handle_event(event, game_state)
                 if result == "GOTO_WORKSHOP":
                     active_tab_index = tabs.index("WORKSHOP")
                     active_tab = "WORKSHOP"
+                    active_view = view_instances.get(active_tab)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -181,6 +205,7 @@ def main():
         COLOR_FG = (220, 210, 190)
 
         active_tab = tabs[active_tab_index]
+        active_view = view_instances.get(active_tab)
         
         # Content Area
         game_state = {
@@ -190,25 +215,40 @@ def main():
             "crafting_system": crafting_system,
             "player_minions": player_minions,
             "fonts": fonts,
-            "scale": SCALE,
+            "all_fonts": fonts,
+            "scale": scale,
+            "config": config,
             "crt_settings": crt_settings
         }
         
-        active_view = view_instances.get(active_tab)
         if active_view:
             active_view.draw(video_buffer, game_state)
 
         # Header & Tabs (Overlay)
-        pygame.draw.rect(video_buffer, COLOR_PANEL, (0, 0, V_WIDTH, 30))
+        pygame.draw.rect(video_buffer, COLOR_PANEL, (0, 0, V_WIDTH, 24))
         h1_f = styles.get_font("H1")
         if h1_f:
-            h1_f.draw(video_buffer, "MUREX LAB", 10, 20, COLOR_ACCENT)
+            h1_f.draw(video_buffer, "MUREX LAB", 8, 16, COLOR_ACCENT)
         
-        tab_x = 100
+        tab_x = 94 # 12 columns x 8px = 96px - 2px of padding
         for i, tab in enumerate(tabs):
             is_active = (active_tab_index == i)
-            tab_w = 70
-            tab_rect = pygame.Rect(tab_x, 5, tab_w, 20)
+            
+            tab_f = styles.get_font("H2")
+            if not tab_f: continue
+            
+            # Dynamic Width & Truncation (48px = 6 chars @ 8px each)
+            display_name = tab
+            if tab_f.get_width(display_name) > 48:
+                display_name = tab[:6]
+            
+            # Button width: Text width + 4px padding (centered, 2px each side)
+            tab_w = tab_f.get_width(display_name) + 4
+            tab_rect = pygame.Rect(tab_x, 4, tab_w, 16) # Centered in 24px height strip? No, 8px rule.
+            # If strip is 24, second line is y=8 to 16. Center at y=16.
+            # Rect covering row 1 & 2 (8-24) or centered?
+            # User previously had (tab_x, 8, tab_w, 16). Let's keep y=4 height=16 for visual centering in 24px strip.
+            tab_rect = pygame.Rect(tab_x, 4, tab_w, 16) 
             
             if is_active:
                 pygame.draw.rect(video_buffer, COLOR_ACCENT, tab_rect, 1)
@@ -218,20 +258,25 @@ def main():
                     pygame.draw.rect(video_buffer, (40, 35, 30), tab_rect)
                 if click:
                     active_tab_index = i
+                    active_tab = tabs[active_tab_index]
+                    active_view = view_instances.get(active_tab)
+                    if active_view and hasattr(active_view, "selection_index"):
+                        active_view.selection_index = 0
             
-            tab_f = styles.get_font("H2")
-            if tab_f:
-                tab_f.draw(video_buffer, tab, tab_x + 5, 20, COLOR_FG if is_active else COLOR_DIM)
+            # Center text in button, baseline at y=16 (second line of 24px strip)
+            text_x = tab_x + (tab_w - tab_f.get_width(display_name)) // 2
+            tab_f.draw(video_buffer, display_name, text_x, 16, COLOR_FG if is_active else COLOR_DIM)
             
-            tab_x += tab_w + 5
+            # Move to next tab with 4px gap
+            tab_x += tab_w + 4
 
         # 2. Scale and Blit to screen
-        pygame.transform.scale(video_buffer, (V_WIDTH * SCALE, V_HEIGHT * SCALE), screen)
+        pygame.transform.scale(video_buffer, (V_WIDTH * scale, V_HEIGHT * scale), screen)
         
         # --- RADIANT CRT BLOOM (Phosphor Halation) ---
         if crt_settings["enabled"] and crt_settings["bloom_alpha"] > 0:
             # Capture the scaled output and blit it additively for a soft "hot" glow
-            bloom_glow = pygame.transform.scale(video_buffer, (V_WIDTH * SCALE, V_HEIGHT * SCALE))
+            bloom_glow = pygame.transform.scale(video_buffer, (V_WIDTH * scale, V_HEIGHT * scale))
             bloom_glow.set_alpha(crt_settings["bloom_alpha"])
             # Shift slightly for the organic horizontal "tube bleed"
             offset = crt_settings["bloom_offset"]
@@ -241,25 +286,31 @@ def main():
         if crt_settings["enabled"]:
             # Check if settings changed to re-generate overlay
             settings_changed = False
+            if config["scale"] != last_scale:
+                settings_changed = True
+                last_scale = config["scale"]
+                screen = pygame.display.set_mode((V_WIDTH * last_scale, V_HEIGHT * last_scale), pygame.RESIZABLE)
+                crt_overlay = pygame.Surface((V_WIDTH * last_scale, V_HEIGHT * last_scale), pygame.SRCALPHA)
+
             for k in ["enabled", "scanline_alpha", "grille_alpha"]:
                 if crt_settings[k] != last_crt_settings[k]:
                     settings_changed = True
                     break
             
             if settings_changed:
-                update_crt_overlay(crt_overlay, crt_settings)
+                update_crt_overlay(crt_overlay, crt_settings, config["scale"])
                 last_crt_settings = crt_settings.copy()
             
             screen.blit(crt_overlay, (0, 0))
 
         # 3. HIGH-RES DEBUG OVERLAY
         if DEBUG:
-            # Draw green 5x5 virtual grid on top of EVERYTHING
+            # Draw green 8x8 virtual grid on top of EVERYTHING
             grid_color = (0, 100, 0)
-            for x in range(0, V_WIDTH, 5):
-                pygame.draw.line(screen, grid_color, (x * SCALE, 0), (x * SCALE, V_HEIGHT * SCALE))
-            for y in range(0, V_HEIGHT, 5):
-                pygame.draw.line(screen, grid_color, (0, y * SCALE), (V_WIDTH * SCALE, y * SCALE))
+            for x in range(0, V_WIDTH, 8):
+                pygame.draw.line(screen, grid_color, (x * scale, 0), (x * scale, V_HEIGHT * scale))
+            for y in range(0, V_HEIGHT, 8):
+                pygame.draw.line(screen, grid_color, (0, y * scale), (V_WIDTH * scale, y * scale))
 
             sys_f = pygame.font.SysFont("monospace", 14)
             # Performance stats
@@ -267,12 +318,12 @@ def main():
                 f"FPS: {int(clock.get_fps())}",
                 f"POS: {world_map.player_pos['x']},{world_map.player_pos['y']}",
                 f"TAB: {active_tab}",
-                f"SEL: {selection_index}"
+                f"SEL: {active_view.selection_index if active_view and hasattr(active_view, 'selection_index') else 'N/A'}"
             ]
             for i, line in enumerate(stats):
                 txt = sys_f.render(line, True, (255, 255, 255))
-                screen.blit(sys_f.render(line, True, (0,0,0)), (12, 12 + i*16))
-                screen.blit(txt, (10, 10 + i*16))
+                screen.blit(sys_f.render(line, True, (0,0,0)), (12, 96 + i*16))
+                screen.blit(txt, (10, 96 + i*16))
         
         pygame.display.flip()
         clock.tick(60)
