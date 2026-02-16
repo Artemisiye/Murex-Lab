@@ -45,12 +45,12 @@
         },
         "oak_log": {
             "item_id": "oak_log",
-            "quantity": 16,
+            "quantity": 23,
             "data": {}
         },
         "plant_fibers": {
             "item_id": "plant_fibers",
-            "quantity": 35,
+            "quantity": 41,
             "data": {}
         },
         "bitter_herbs": {
@@ -60,12 +60,12 @@
         },
         "wild_seeds": {
             "item_id": "wild_seeds",
-            "quantity": 23,
+            "quantity": 25,
             "data": {}
         },
         "rough_stone": {
             "item_id": "rough_stone",
-            "quantity": 3,
+            "quantity": 8,
             "data": {}
         },
         "cordage_12_250e": {
@@ -111,6 +111,26 @@
                 },
                 "name": "Fiber Cordage"
             }
+        },
+        "tree_bark": {
+            "item_id": "tree_bark",
+            "quantity": 2,
+            "data": {}
+        },
+        "raw_hide": {
+            "item_id": "raw_hide",
+            "quantity": 3,
+            "data": {}
+        },
+        "animal_fat": {
+            "item_id": "animal_fat",
+            "quantity": 2,
+            "data": {}
+        },
+        "tin_ore": {
+            "item_id": "tin_ore",
+            "quantity": 1,
+            "data": {}
         }
     }
 }

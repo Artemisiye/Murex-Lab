@@ -17,6 +17,7 @@ class SettingsView:
             "Body": "Standard body text.", 
             "Small": "v0.1.0-alpha"
         }
+        self.ui_assets = {} # Shared UI sprites (arrows, etc)
 
     def handle_event(self, event, game_state):
         crt = game_state.get('crt_settings')
@@ -243,6 +244,16 @@ class SettingsView:
         small_f = styles.get_font("Small")
         if not body_f or not crt: return
 
+        # Load UI Assets if missing
+        if "down_arrow" not in self.ui_assets:
+            import os
+            repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            asset_path = os.path.join(repo_root, "assets", "ui", "▼-5px.png")
+            try:
+                self.ui_assets["down_arrow"] = pygame.image.load(asset_path).convert_alpha()
+            except:
+                self.ui_assets["down_arrow"] = None
+
         # --- PANEL BASE ---
         px, py, pw, ph = 10, 40, 460, 220
         pygame.draw.rect(buffer, COLOR_PANEL, (px, py, pw, ph))
@@ -309,7 +320,15 @@ class SettingsView:
                     pygame.draw.rect(buffer, (20, 18, 16), (val_x, y - 2, 60, 16))
                     pygame.draw.rect(buffer, color, (val_x, y - 2, 60, 16), 1)
                     body_f.draw(buffer, val_str, val_x + 8, y + 12, color)
-                    pygame.draw.polygon(buffer, color, [(val_x + 48, y + 3), (val_x + 56, y + 3), (val_x + 52, y + 10)])
+                    # Use 5px Arrow Asset
+                    if self.ui_assets.get("down_arrow"):
+                        # Tint arrow if selected? No, keeping it original or applying color logic if SpriteFont handled it.
+                        # For now, blit as is but centered in the 16px row (y is baseline at +12)
+                        # Box is (val_x, y-2, 60, 16). Center of box y = (y-2) + 8 = y + 6.
+                        # Arrow is 5px high. y = (y+6) - 2.5 = y + 3.5.
+                        buffer.blit(self.ui_assets["down_arrow"], (val_x + 48, y + 4))
+                    else:
+                        pygame.draw.polygon(buffer, color, [(val_x + 48, y + 3), (val_x + 56, y + 3), (val_x + 52, y + 10)])
                 elif percent is not None:
                     pygame.draw.rect(buffer, (30, 25, 20), (val_x, y + 2, 100, 10))
                     pygame.draw.rect(buffer, color, (val_x, y + 2, int(100 * percent), 10))
@@ -341,7 +360,13 @@ class SettingsView:
                 
                 if font:
                     body_f.draw(buffer, font.name[:10].ljust(10), COL_VAL + 5, y + 9, dc)
-                    pygame.draw.polygon(buffer, dc, [(COL_VAL + 90, y + 4), (COL_VAL + 98, y + 4), (COL_VAL + 94, y + 10)])
+                    # Use 5px Arrow Asset
+                    if self.ui_assets.get("down_arrow"):
+                        # Box (COL_VAL, y-4, 104, 18). Center y = (y-4) + 9 = y + 5.
+                        # Arrow 5px high. y = (y+5) - 2.5 = y + 2.5.
+                        buffer.blit(self.ui_assets["down_arrow"], (COL_VAL + 90, y + 3))
+                    else:
+                        pygame.draw.polygon(buffer, dc, [(COL_VAL + 90, y + 4), (COL_VAL + 98, y + 4), (COL_VAL + 94, y + 10)])
                 
                 # --- { SIZE } ---
                 small_f.draw(buffer, dim_str, COL_SIZE, y + 9, COLOR_DIM)

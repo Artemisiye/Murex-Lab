@@ -11,13 +11,13 @@ Small Text: silkscreen-400 (5x5)
 ## Arrows
 
 5px:
-- down: (1,1,5,5)
-- right: (7,1,5,5)
-- up: (13,1,5,5)
-- left: (19,1, 5, 5)
+- down: assets\ui\▼-5px.png
+- right: assets\ui\▶-5px.png
+- up: assets\ui\▲-5px.png
+- left: assets\ui\◀-5px.png
 
 7px:
-- down: (1,10,7,7)
-- right: (9,10,7,7)
-- up: (17,10,7,7)
-- left: (25,10, 7, 7)
+- down: assets\ui\▼-7px.png
+- right: assets\ui\▶-7px.png
+- up: assets\ui\▲-7px.png
+- left: assets\ui\◀-7px.png

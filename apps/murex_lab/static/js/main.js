@@ -242,8 +242,8 @@ async function updateCraftPreview() {
             let statsHtml = `
                 <div class="result-preview" style="text-align:center; padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:20px;">
                     <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:10px;">Forged Outcome</div>
-                    <img src="/static/assets/${ITEM_IMAGE_MAP[data.output_id] || ('item_' + data.output_id + '.png')}" 
-                         onerror="this.src='/static/assets/logs.png'" 
+                    <img src="/assets/${ITEM_IMAGE_MAP[data.output_id] || ('item_sprites/' + data.output_id + '.png')}" 
+                         onerror="this.src='/assets/item-sprites/logs.png'" 
                          style="width:80px; height:80px; object-fit:contain; margin-bottom:15px; image-rendering: pixelated;">
                     <div style="font-family:'Cinzel'; font-size:1.1rem; color:#fff;">${data.output_name}</div>
                 </div>
@@ -335,7 +335,7 @@ async function initInventoryModule() {
 
                 card.innerHTML = `
                     <div class="item-visual-thumbnail">
-                        <img src="/static/assets/${imgSrc}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="pixel-art">
+                        <img src="/assets/${imgSrc}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="pixel-art">
                         <div class="iv-shape" style="display:none"></div>
                     </div>
                     <div class="item-details">
@@ -383,22 +383,22 @@ const TILE_SIZE = 150;
 
 // Precomputed Biome Sprites
 const ITEM_IMAGE_MAP = {
-    'iron_dagger': 'dagger.png',
-    'simple_shirt': 'shirt.png',
-    'simple_pants': 'pants.png',
-    'staff': 'staff.png',
-    'pouch': 'pouch.png',
-    'mat_oak_log': 'logs.png',
-    'oak_log': 'logs.png'
+    'iron_dagger': 'item-sprites/dagger.png',
+    'simple_shirt': 'item-sprites/shirt.png',
+    'simple_pants': 'item-sprites/pants.png',
+    'staff': 'item-sprites/staff.png',
+    'pouch': 'item-sprites/pouch.png',
+    'mat_oak_log': 'item-sprites/logs.png',
+    'oak_log': 'item-sprites/logs.png'
 };
 
 // Precomputed Biome Sprites
 const BIOME_TEMPLATES = {
-    'forest': '<div class="biome-marker forest"><img src="/static/assets/woodland.png"></div>',
+    'forest': '<div class="biome-marker forest"><img src="/assets/tiles/woodland.png"></div>',
     'mountains': '<div class="biome-marker mountains"><div class="m-peak"></div><div class="m-peak"></div></div>',
     'river': '<div class="biome-marker river"><div class="r-path"></div></div>',
     'lab': '<div class="biome-marker lab"><div class="lab-spire"></div></div>',
-    'plains': '<div class="biome-marker plains"><img src="/static/assets/grassland.png"></div>',
+    'plains': '<div class="biome-marker plains"><img src="/assets/tiles/grassland.png"></div>',
     'unknown': '<div class="fow-texture"></div>'
 };
 
@@ -434,7 +434,7 @@ function setupTilePool() {
     const p = document.createElement('img');
     p.id = 'active-player-marker';
     p.className = 'player-marker-sprite';
-    p.src = '/static/assets/player_avatar.png';
+    p.src = '/assets/player_avatar.png';
     viewport.appendChild(p);
 }
 
@@ -652,18 +652,18 @@ function renderAreaGrid(data) {
     grid.innerHTML = '';
 
     const ASSET_MAP = {
-        'node_oak': 'logs.png',
-        'node_herbs': 'item_bitter_herbs.png',
-        'node_shrub': 'item_plant_fibers.png',
-        'node_grass': 'item_plant_fibers.png',
-        'node_seeds': 'item_wild_seeds.png',
-        'node_bush': 'item_wild_seeds.png',
-        'node_loose_stone': 'item_rough_stone.png',
-        'node_iron': 'item_iron_ore.png',
-        'node_stone': 'item_rough_stone.png',
-        'node_clay': 'item_raw_clay.png',
-        'node_fish': 'item_fish.png',
-        'node_reeds': 'item_plant_fibers.png',
+        'node_oak': 'item-sprites/logs.png',
+        'node_herbs': 'item-sprites/item_bitter_herbs.png',
+        'node_shrub': 'item-sprites/item_plant_fibers.png',
+        'node_grass': 'item-sprites/item_plant_fibers.png',
+        'node_seeds': 'item-sprites/item_wild_seeds.png',
+        'node_bush': 'item-sprites/item_wild_seeds.png',
+        'node_loose_stone': 'item-sprites/item_rough_stone.png',
+        'node_iron': 'item-sprites/item_iron_ore.png',
+        'node_stone': 'item-sprites/item_rough_stone.png',
+        'node_clay': 'item-sprites/item_raw_clay.png',
+        'node_fish': 'item-sprites/item_fish.png',
+        'node_reeds': 'item-sprites/item_plant_fibers.png',
         'node_fallen_branches': 'item_oak_log.png',
         'node_driftwood': 'item_oak_log.png'
     };
@@ -690,7 +690,7 @@ function renderAreaGrid(data) {
                 if (asset) {
                     const s = document.createElement('img');
                     s.className = 'reg-sprite';
-                    s.src = `/static/assets/${asset}`;
+                    s.src = `/assets/${asset}`;
                     s.style.display = 'none';
                     s.onload = () => { s.style.display = 'block'; lbl.style.display = 'none'; };
                     s.onerror = () => { s.remove(); lbl.style.display = 'block'; };
@@ -702,7 +702,7 @@ function renderAreaGrid(data) {
                 cellDiv.classList.add('entity');
                 const s = document.createElement('img');
                 s.className = 'reg-sprite';
-                s.src = '/static/assets/player_avatar.png'; // Placeholder for mob
+                s.src = '/assets/player_avatar.png'; // Placeholder for mob
                 s.style.opacity = '0.4';
                 cellDiv.appendChild(s);
             }
@@ -711,7 +711,7 @@ function renderAreaGrid(data) {
                 cellDiv.classList.add('player');
                 const p = document.createElement('img');
                 p.className = 'reg-player-sprite';
-                p.src = '/static/assets/player_avatar.png';
+                p.src = '/assets/player_avatar.png';
                 cellDiv.appendChild(p);
             }
 

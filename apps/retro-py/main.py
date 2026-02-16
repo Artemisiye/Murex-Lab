@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../murex_lab')))
 
 from renderer import SpriteFont
-from ui_components import Widget, Label, Panel, Button, styles
+from ui_components import Widget, Label, Panel, Button, styles, overlays
 
 # Game Logic Imports
 from modules.crafting import CraftingManager
@@ -42,7 +42,7 @@ def main():
     player_minions = [Minion("m_001", "Lead Artificer")]
 
     # Font Management
-    font_dir = os.path.join(os.path.dirname(__file__), "assets", "fonts")
+    font_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../assets/sprite-fonts"))
     fonts = {}
     current_font_name = None
     
@@ -64,7 +64,7 @@ def main():
     styles.set_font("Small", fonts.get("silkscreen-400"))
     
     # UI State
-    tabs = ["MAP", "WORKSHOP", "INVENTORY", "MINIONS", "SETTINGS"]
+    tabs = ["MAP", "WORKSHOP", "INVENTORY", "MINIONS", "SETTINGS", "TEST"]
     active_tab_index = 0
     active_tab = tabs[active_tab_index]
     
@@ -74,13 +74,15 @@ def main():
     from views.inventory_view import InventoryView
     from views.minions_view import MinionsView
     from views.settings_view import SettingsView
+    from views.test_ui_view import TestUIView
  
     view_instances = {
         "MAP": MapView(),
         "WORKSHOP": WorkshopView(),
         "INVENTORY": InventoryView(),
         "MINIONS": MinionsView(),
-        "SETTINGS": SettingsView()
+        "SETTINGS": SettingsView(),
+        "TEST": TestUIView()
     }
     
     active_tab = tabs[active_tab_index]
@@ -223,9 +225,12 @@ def main():
         
         if active_view:
             active_view.draw(video_buffer, game_state)
+            
+        # Draw Overlays (Dropdowns, Tooltips) last
+        overlays.draw(video_buffer)
 
         # Header & Tabs (Overlay)
-        pygame.draw.rect(video_buffer, COLOR_PANEL, (0, 0, V_WIDTH, 24))
+        pygame.draw.rect(video_buffer, COLOR_PANEL, (0, 0, V_WIDTH, 23))
         h1_f = styles.get_font("H1")
         if h1_f:
             h1_f.draw(video_buffer, "MUREX LAB", 8, 16, COLOR_ACCENT)
@@ -269,6 +274,16 @@ def main():
             
             # Move to next tab with 4px gap
             tab_x += tab_w + 4
+
+        # Debug Overlay: Cursor Coordinates
+        if DEBUG:
+             debug_font = styles.get_font("Small")
+             if debug_font:
+                 coord_text = f"X:{vmx} Y:{vmy}"
+                 # Ensure visual clarity
+                 text_w = debug_font.get_width(coord_text)
+                 pygame.draw.rect(video_buffer, (0, 0, 0), (vmx + 4, vmy, text_w + 4, 4))
+                 debug_font.draw(video_buffer, coord_text, vmx + 6, vmy + 2, (0, 255, 0))
 
         # 2. Scale and Blit to screen
         pygame.transform.scale(video_buffer, (V_WIDTH * scale, V_HEIGHT * scale), screen)

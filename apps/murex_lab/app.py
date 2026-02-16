@@ -103,9 +103,15 @@ def get_view(view_name):
         return f"<div class='placeholder-message'><h2>Error</h2><p>Could not load view: {view_name}</p></div>"
 
 # --- API Endpoints ---
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+    return send_from_directory(os.path.join(repo_root, 'assets'), filename)
+
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static', 'assets'),
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+    return send_from_directory(os.path.join(repo_root, 'assets'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/api/status')
