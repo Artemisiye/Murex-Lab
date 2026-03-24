@@ -1,8 +1,9 @@
 import pygame
-from ui_components import Panel, styles
+from ui_components import BaseView, Panel, styles
 
-class SettingsView:
+class SettingsView(BaseView):
     def __init__(self):
+        super().__init__()
         self.selection_index = -1 # -1 for Tabs, 0+ for content
         self.selection_col = 0    # 0 for Dropdown/Value, 1 for Preview (Fonts only)
         self.active_section_idx = 0 # 0: DISPLAY, 1: FONTS
@@ -19,13 +20,14 @@ class SettingsView:
         }
         self.ui_assets = {} # Shared UI sprites (arrows, etc)
 
-    def handle_event(self, event, game_state):
-        crt = game_state.get('crt_settings')
-        config = game_state.get('config')
-        all_fonts = game_state.get('all_fonts', {})
+    def handle_event(self, event, mx, my):
+        if super().handle_event(event, mx, my):
+            return True
+            
+        crt = self.game_state.get('crt_settings')
+        config = self.game_state.get('config')
+        all_fonts = self.game_state.get('all_fonts', {})
         if not crt or not config: return False
-        
-        scale = config["scale"]
         
         # --- EDITING PREVIEW INTERCEPTION ---
         if self.editing_preview:
@@ -64,17 +66,14 @@ class SettingsView:
                     return True
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                mx, my = event.pos
-                vx, vy = mx // scale, my // scale
-                
                 # COL_VAL = 80, COL_PREV = 264. Dropdown anchors to COL_VAL or 280
                 val_x = 80 if self.active_section_idx == 1 else 280
                 row_y = self._get_dropdown_anchor_y()
                 drop_w = 104 if self.active_section_idx == 1 else 100
                 drop_h = min(len(options), 8) * 16 + 4
                 
-                if val_x <= vx <= val_x + drop_w and row_y + 14 <= vy <= row_y + 14 + drop_h:
-                    idx = (vy - (row_y + 16)) // 16
+                if val_x <= mx <= val_x + drop_w and row_y + 14 <= my <= row_y + 14 + drop_h:
+                    idx = (my - (row_y + 16)) // 16
                     if 0 <= idx < len(options):
                          self._set_dropdown_val(self.open_dropdown, options[idx], config, all_fonts)
                          self.open_dropdown = None
@@ -138,15 +137,12 @@ class SettingsView:
                         return True
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            mx, my = event.pos
-            vx, vy = mx // scale, my // scale
-            
             # TABS area
-            if 30 <= vy <= 50:
+            if 30 <= my <= 50:
                 current_tab_x = 20
                 for i, section in enumerate(self.sections):
                     tab_w = styles.get_font("H2").get_width(section) + 10
-                    if current_tab_x <= vx <= current_tab_x + tab_w:
+                    if current_tab_x <= mx <= current_tab_x + tab_w:
                         self.active_section_idx = i
                         self.selection_index = -1
                         return True
@@ -156,27 +152,25 @@ class SettingsView:
             if self.active_section_idx == 0:
                 for i in range(6):
                     row_y = 80 + i * 25
-                    if 15 <= vx <= 465 and row_y - 5 <= vy <= row_y + 15:
+                    if 15 <= mx <= 465 and row_y - 5 <= my <= row_y + 15:
                         self.selection_index = i
-                        if vx > 280:
+                        if mx > 280:
                             if i == 0: self._open_menu("SCALE", config, all_fonts)
                             elif i == 1: crt["enabled"] = not crt["enabled"]
                             elif i >= 2: 
                                 self.dragging = i
-                                self._update_slider_from_mouse(vx, crt)
+                                self._update_slider_from_mouse(mx, crt)
                         return True
             else:
                 for i in range(4):
                     row_y = 80 + i * 42
-                    if 15 <= vx <= 465 and row_y - 10 <= vy <= row_y + 35:
+                    if 15 <= mx <= 465 and row_y - 10 <= my <= row_y + 35:
                         self.selection_index = i
                         role = ["H1", "H2", "Body", "Small"][i]
-                        # COL_VAL = 80 (width 104)
-                        # COL_PREV = 264 (width 180)
-                        if 80 <= vx <= 184:
+                        if 80 <= mx <= 184:
                             self.selection_col = 0
                             self._open_menu(role, config, all_fonts)
-                        elif 264 <= vx <= 444:
+                        elif 264 <= mx <= 444:
                             self.selection_col = 1
                             self.editing_preview = True
                         else:
@@ -187,9 +181,7 @@ class SettingsView:
             self.dragging = None
 
         if event.type == pygame.MOUSEMOTION and self.dragging is not None:
-            mx, my = event.pos
-            vx, vy = mx // scale, my // scale
-            self._update_slider_from_mouse(vx, crt)
+            self._update_slider_from_mouse(mx, crt)
             return True
 
         return False
@@ -228,7 +220,8 @@ class SettingsView:
         if key == "bloom_offset": crt[key] = int(percent * 10)
         else: crt[key] = int(percent * 255)
 
-    def draw(self, buffer, game_state):
+    def draw_view(self, buffer, game_state):
+        self.game_state = game_state
         COLOR_ACCENT = styles.get_color("accent")
         COLOR_FG = styles.get_color("fg")
         COLOR_DIM = styles.get_color("dim")

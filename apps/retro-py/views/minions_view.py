@@ -1,11 +1,22 @@
 import pygame
-from ui_components import Panel, styles
+from ui_components import BaseView, Panel, Label, styles
 
-class MinionsView:
+class MinionsView(BaseView):
     def __init__(self):
+        super().__init__()
         self.selection_index = 0
+        
+        # Persistent UI Layout
+        self.main_panel = Panel(x=0, y=0, w=40, h=30, title="MINIONS")
+        self.stats_panel = Panel(x=40, y=0, w=20, h=30, title="STATS")
+        
+        self.add_child(self.main_panel)
+        self.add_child(self.stats_panel)
 
-    def handle_event(self, event, game_state):
+    def handle_event(self, event, mx, my):
+        if super().handle_event(event, mx, my):
+            return True
+            
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
                 self.selection_index += 1
@@ -15,42 +26,20 @@ class MinionsView:
                 return True
         return False
 
-    def draw(self, buffer, game_state):
-        COLOR_ACCENT = styles.get_color("accent")
-        COLOR_FG = styles.get_color("fg")
-        COLOR_DIM = styles.get_color("dim")
+    def draw(self, buffer):
         
-        # Grid Alignment (multiples of 8)
-        px, py, pw, ph = 8, 32, 464, 232
-        
-        # Chunky TUI Shadow
-        pygame.draw.rect(buffer, (5, 4, 3), (px + 4, py + 4, pw, ph))
-        minion_panel = Panel(px, py, pw, ph, title="MINIONS")
-        minion_panel.draw(buffer)
-        
-        player_minions = game_state['player_minions']
-        m = player_minions[0]
-        body_f = styles.get_font("Body")
-        small_f = styles.get_font("Small")
-        
-        if body_f:
-            # Baseline y=72, y=88 for info
-            body_f.draw(buffer, f"NAME:  {m.name.upper()}", px + 16, 72, COLOR_ACCENT)
-            body_f.draw(buffer, f"CLASS: ARTIFICER", px + 16, 88, COLOR_FG)
-            
-            # Health Bar (Aligned to y=112 row)
-            max_hp = m.get_stat("hp")
-            pygame.draw.rect(buffer, (50, 20, 20), (px + 16, 106, 120, 12))
-            hp_w = int((m.current_hp / max_hp) * 120) if max_hp > 0 else 0
-            pygame.draw.rect(buffer, (200, 50, 50), (px + 16, 106, hp_w, 12))
-            
-            if small_f:
-                small_f.draw(buffer, f"HP: {int(m.current_hp)}/{int(max_hp)}", px + 144, 114, COLOR_FG)
+        super().draw(buffer)
 
-            # Energy Bar (Aligned to y=136 row)
-            pygame.draw.rect(buffer, (20, 50, 70), (px + 16, 130, 120, 12))
-            en_w = int((m.current_energy / m.max_energy) * 120)
-            pygame.draw.rect(buffer, (50, 150, 255), (px + 16, 130, en_w, 12))
+        # Draw dynamic content
+        player_minions = self.game_state.get('player_minions', [])
+        if player_minions:
+            m = player_minions[0]
+            body_f = styles.get_font("Body")
+            small_f = styles.get_font("Small")
             
+            if body_f:
+                body_f.draw(buffer, f"NAME:  {m.name.upper()}", 32, 72, styles.get_color("accent"))
+                body_f.draw(buffer, f"CLASS: ARTIFICER", 32, 88, styles.get_color("fg"))
+                
             if small_f:
-                small_f.draw(buffer, f"EN: {int(m.current_energy)}/{int(m.max_energy)}", px + 144, 138, COLOR_FG)
+                small_f.draw(buffer, "LEVEL 1 (INITIATE)", 32, 110, styles.get_color("dim"))

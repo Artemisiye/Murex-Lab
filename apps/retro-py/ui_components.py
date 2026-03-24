@@ -1,6 +1,8 @@
 import pygame
 import os
 
+GRID_SIZE = 8
+
 # --- STYLE SYSTEM ---
 class StyleManager:
     def __init__(self):
@@ -38,9 +40,9 @@ class OverlayManager:
         self._items.append(callback)
         
     def draw(self, surface):
-        for cb in self._items:
-            cb(surface)
-        self._items = []
+        for callback in self._items:
+            callback(surface)
+        self._items = [] # Flush each frame
 
 overlays = OverlayManager()
 
@@ -48,7 +50,12 @@ overlays = OverlayManager()
 # Widget 
 # ========================
 class Widget:
-    def __init__(self, x=0, y=0, w=32, h=32, padding=0):
+    def __init__(self, x=0, y=0, w=4, h=4, padding=0, children=None, raw_coords=False):
+        # Scale by Grid Size
+        if not raw_coords:
+            x, y, w, h = x * GRID_SIZE, y * GRID_SIZE, w * GRID_SIZE, h * GRID_SIZE
+            padding = padding * GRID_SIZE
+
         self.rect = pygame.Rect(x, y, w, h)
         self.visible = True
         self.children = []
@@ -60,6 +67,10 @@ class Widget:
         self.is_focused = False
         self.can_focus = False
         self.clip_children = False
+
+        if children:
+            for child in children:
+                self.add_child(child)
 
     def focus(self):
         if self.can_focus:
@@ -132,16 +143,22 @@ class Widget:
         return focusable
 
     def handle_event(self, event, mx, my):
+        """
+        The Dispatcher: Routes events through the UI tree.
+        1. Checks for global focus/tab traversal.
+        2. Passes the event to children (back-to-front) for interception.
+        3. If no child consumes the event, it calls self.on_event().
+        
+        Args:
+            event: The Pygame event object.
+            mx, my: 8px grid-aligned mouse coordinates.
+        Returns: True if the event was consumed.
+        """
         if not self.visible:
             return False
             
-        # Global Focus Traversal (Intercept TAB at root or container level)
-        # Note: Ideally this should be handled by a UIManager, but we inject here for simplicity in Phase 1
+        # Global Focus Traversal
         if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
-             # Only the root widget or a container processing the event bubble should handle this
-             # We can't easily distinguish 'root', so individual widgets shouldn't consume Tab 
-             # unless they are the active container. 
-             # Simpler Approach: If this widget has no parent, it acts as the focus controller.
              if self.parent is None:
                  all_focusable = self.get_focusable_widgets()
                  if not all_focusable: return False
@@ -160,19 +177,67 @@ class Widget:
                  all_focusable[next_idx].focus()
                  return True
 
+        # Coordinate check for performance and containment
+        # (Optional: check if mouse is inside absolute rect before passing to children)
+
         for child in reversed(self.children):
             if child.handle_event(event, mx, my):
                 return True
                 
-        # If we reach here and it was a click on the root, blur all
         if self.parent is None and event.type == pygame.MOUSEBUTTONDOWN:
             for w in self.get_focusable_widgets():
                 w.blur()
 
-        return self._handle_self(event, mx, my)
+        return self.on_event(event, mx, my)
 
-    def _handle_self(self, event, mx, my):
+    def on_event(self, event, mx, my):
+        """
+        The Handler: Specific widget interaction logic.
+        Override this in subclasses (Button, Slider, etc.) to define 
+        how the widget reacts to clicks or key presses.
+        """
         return False
+
+
+# ========================
+#  Base View Module
+# ========================
+class BaseView(Widget):
+    """
+    A view is a top-level widget starting at y=3 (24px grid aligned).
+    Inherits from Widget to leverage grid scaling and child composition.
+    """
+    def __init__(self, **kwargs):
+        # Default view bounds: x=0, y=3, w=60, h=30 (480x240 @ 8px grid)
+        # Note: main header ends at y=3 (24px)
+        kwargs.setdefault('x', 0)
+        kwargs.setdefault('y', 3)
+        kwargs.setdefault('w', 60)
+        kwargs.setdefault('h', 30)
+        super().__init__(**kwargs)
+
+    def dispatch_view_event(self, event, game_state):
+        """
+        The Bridge: Entry point from main.py.
+        1. Stores game_state for the draw/logic cycle.
+        2. Translates raw pixel mouse coordinates to grid coordinates.
+        3. Calls self.handle_event() to begin tree traversal.
+        """
+        self.game_state = game_state
+
+        mx, my = pygame.mouse.get_pos()
+        scale = game_state.get('scale', 1)
+        vx, vy = mx // scale, my // scale
+        return self.handle_event(event, vx, vy)
+
+    def draw_view(self, surface, game_state):
+        """
+        The Render Bridge: Entry point from main.py.
+        1. Updates game_state for reference during drawing.
+        2. Calls self.draw() to begin recursive tree rendering.
+        """
+        self.game_state = game_state
+        self.draw(surface)
 
 
 # ========================
@@ -181,8 +246,10 @@ class Widget:
 class Label(Widget):
     def __init__(self, text="", x=0, y=0, color=None, role="Body", align="left", padding=0):
         font = styles.get_font(role)
-        w = font.get_width(text) if font else 0
-        h = font.effective_h if font else 12
+        # Convert pixel metrics to grid units for the bounding box
+        w = (font.get_width(text) / GRID_SIZE) if font else 2
+        h = (font.effective_h / GRID_SIZE) if font else 1.5
+        
         super().__init__(x, y, w, h)
         self.text = text
         self.color = color if color else styles.get_color("fg")
@@ -203,13 +270,18 @@ class Label(Widget):
 #  ░░Row Item░░░░░░           
 # ========================
 class RowItem(Widget):
-    def __init__(self, x=0, y=0, w=16, h=16, text="", callback=None, padding=8):
+    """
+    A widget that represents a row in a list.
+    Can be Hovered.
+    Padding defines highlight area.
+    """
+    def __init__(self, x=0, y=0, w=2, h=2, text="", callback=None, padding=1):
         super().__init__(x, y, w, h, padding=0)
+        self.padding = padding * GRID_SIZE
         self.text = text
         self.callback = callback
         self.can_focus = True
         self.hovered = False
-        self.padding = padding
         
     def _draw_self(self, surface, abs_rect):
         bg = styles.get_color("select") if (self.hovered or self.is_focused) else styles.get_color("panel")
@@ -221,7 +293,7 @@ class RowItem(Widget):
             col = styles.get_color("accent") if (self.hovered or self.is_focused) else styles.get_color("fg")
             font.draw(surface, self.text, abs_rect.x + self.padding, abs_rect.y + self.padding/2, col)
 
-    def _handle_self(self, event, mx, my):
+    def on_event(self, event, mx, my):
         abs_rect = self.get_absolute_rect()
         self.hovered = abs_rect.collidepoint(mx, my)
         
@@ -236,25 +308,27 @@ class RowItem(Widget):
 #      | Button |
 # ========================
 class Button(Widget):
-    def __init__(self, text="", x=0, y=0, w=None, h=None, callback=None, role="Body", o_padding=0, i_padding=2, icon=None, border=True):
+    def __init__(self, text="", x=0, y=0, w=None, h=None, 
+                 callback=None, role="Body", o_padding=0, 
+                 i_padding=0.25, icon=None, border=True):
         font = styles.get_font(role)
         
         # Calculate dimensions
         if w is None:
             if text:
-                w = (font.get_width(text) + i_padding * 2 if font else 32)
+                w = (font.get_width(text)/GRID_SIZE + i_padding * 2 if font else 4)
             elif icon:
-                w = icon.get_width() + i_padding * 2
+                w = icon.get_width()/GRID_SIZE + i_padding * 2
             else:
-                w = 32
+                w = 4
                 
         if h is None:
             if text:
-                h = (font.effective_h + i_padding * 2 if font else 16)
+                h = (font.effective_h/GRID_SIZE + i_padding * 2 if font else 2)
             elif icon:
-                h = icon.get_height() + i_padding * 2
+                h = icon.get_height()/GRID_SIZE + i_padding * 2
             else:
-                h = 16
+                h = 2
 
         super().__init__(x - i_padding,
                          y - i_padding,
@@ -292,10 +366,10 @@ class Button(Widget):
         font = styles.get_font(self.role)
         if font and self.text:
             tx = abs_rect.x + (abs_rect.w - font.get_width(self.text)) // 2
-            ty = abs_rect.y + self.i_padding + font.effective_h
+            ty = abs_rect.y + self.i_padding*GRID_SIZE + font.effective_h
             font.draw(surface, self.text, tx, ty, styles.get_color("fg"))
 
-    def _handle_self(self, event, mx, my):
+    def on_event(self, event, mx, my):
         # Keyboard Activation
         if self.is_focused and event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_SPACE]:
             if self.callback: self.callback()
@@ -319,8 +393,8 @@ class Button(Widget):
 #  | Panel |             |
 # ========================
 class Panel(Widget):
-    def __init__(self, x=0, y=0, w=480, h=240, title=None, titles=None):
-        super().__init__(x, y, w, h, padding=4)
+    def __init__(self, x=0, y=0, w=60, h=30, title=None, titles=None, children=None):
+        super().__init__(x, y, w, h, padding=0.5, children=children)
         self.titles = titles if titles else []
         if title: self.titles.append({"text": title, "color": styles.get_color("accent")})
         self.dividers = [] # list of (x_pos, is_vertical, color)
@@ -372,7 +446,7 @@ class Panel(Widget):
 #                  │
 # ========================
 class ScrollContainer(Widget):
-    def __init__(self, x=0, y=0, w=240, h=144, content_h=None):
+    def __init__(self, x=0, y=0, w=30, h=18, content_h=None):
         super().__init__(x, y, w, h, padding=0)
         self.content_h = content_h if content_h is not None else 0
         self.scroll_offset = 0
@@ -415,7 +489,7 @@ class ScrollContainer(Widget):
 # ========================
 class Slider(Widget):
     def __init__(self, x, y, w, val_min=0, val_max=100, current=50):
-        super().__init__(x, y, w, 16)
+        super().__init__(x, y, w, 2)
         self.min = val_min
         self.max = val_max
         self.current = current
@@ -442,7 +516,7 @@ class Slider(Widget):
                 txt = str(int(self.current))
                 font.draw(surface, txt, pos_x - 4, abs_rect.y, styles.get_color("fg"))
 
-    def _handle_self(self, event, mx, my):
+    def on_event(self, event, mx, my):
         abs_rect = self.get_absolute_rect()
         
         # Keyboard Control
@@ -478,7 +552,7 @@ class Slider(Widget):
 # ========================
 class Dropdown(Widget):
     def __init__(self, x, y, w, options, current_idx=0):
-        super().__init__(x, y, w, 16, padding=0)
+        super().__init__(x, y, w, 2, padding=0)
         self.options = options
         self.current_idx = current_idx
         self.is_open = False
@@ -520,7 +594,7 @@ class Dropdown(Widget):
             
             overlays.add(draw_overlay)
 
-    def _handle_self(self, event, mx, my):
+    def on_event(self, event, mx, my):
         # Keyboard Logic
         if self.is_focused and event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
@@ -561,7 +635,7 @@ class Dropdown(Widget):
 # ========================
 class TextField(Widget):
     def __init__(self, x, y, w, text=""):
-        super().__init__(x, y, w, 16)
+        super().__init__(x, y, w, 2)
         self.text = text
         self.cursor_visible = True
         self.last_blink = 0
@@ -578,7 +652,7 @@ class TextField(Widget):
                 display_text += "_"
             font.draw(surface, display_text, abs_rect.x + 4, abs_rect.y + 12, styles.get_color("fg"))
 
-    def _handle_self(self, event, mx, my):
+    def on_event(self, event, mx, my):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             abs_rect = self.get_absolute_rect()
             if abs_rect.collidepoint(mx, my):
@@ -603,8 +677,8 @@ class TextField(Widget):
 #  | Panel | Stack |     |
 # ========================
 class PanelStack(Widget):
-    def __init__(self, x=0, y=0, w=480, h=240, panels=None):
-        super().__init__(x, y, w, h, padding=0)
+    def __init__(self, x=0, y=0, w=60, h=30, panels=None, **kwargs):
+        super().__init__(x, y, w, h, **kwargs)
         self.panels = [] # list of {"view": Widget, "name": str}
         self.active_idx = 0
         self.clip_children = False
@@ -682,7 +756,7 @@ class PanelStack(Widget):
                     titles.append({"text": e["name"], "color": color})
                 view.titles = titles
 
-    def _handle_self(self, event, mx, my):
+    def on_event(self, event, mx, my):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             abs_rect = self.get_absolute_rect()
             # Check for clicks in the title/panel area (top border segment)
@@ -701,3 +775,5 @@ class PanelStack(Widget):
                         return True
                     curr_x += tw + 4 + 4 # Gap + Text + Gap
         return False
+
+

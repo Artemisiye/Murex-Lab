@@ -1,36 +1,47 @@
 import pygame
-from ui_components import Panel, styles, Widget, PanelStack, ScrollContainer, Button
+from ui_components import BaseView, Panel, Button, Label, ScrollContainer, PanelStack, RowItem, styles
 
-class WorkshopView:
+class WorkshopView(BaseView):
     def __init__(self):
+        super().__init__()
         self.selection_index = 0
-        self.root = Widget(0, 24, 480, 240)
 
-        self.blueprint_panel = Panel(title="BLUEPRINTS", w=128)
-        self.blueprint_list = ScrollContainer(0, 0, 128, 232)
-        self.blueprint_panel.add_child(self.blueprint_list)
-        self.root.add_child(self.blueprint_panel)
-
-
-        self.station_bench = Panel(title="BENCH", x=128, h=16, w=352)
-        self.stattion_firepit = Panel(title="FIREPIT", x=128, h=16, w=352)
-        self.panel_stack = PanelStack(panels=[
+        # Building components as children of the view
+        
+        # 1. Blueprint Panel (Left)
+        self.blueprint_list = ScrollContainer(x=0, y=2, w=16, h=27)
+        self.blueprint_panel = Panel(title="BLUEPRINTS", x=0, y=0, w=16, h=30, children=[
+            self.blueprint_list
+        ])
+        
+        # 2. Station Tabs (Top Right)
+        self.station_bench = Panel(title="BENCH")
+        self.stattion_firepit = Panel(title="FIREPIT")
+        self.panel_stack = PanelStack(x=16, y=0, w=44, h=2, panels=[
             self.station_bench,
-            self.stattion_firepit])
-        self.root.add_child(self.panel_stack)
+            self.stattion_firepit
+        ])
+        
+        # 3. Component Details & Selection
+        self.component_list = Panel(title="not", x=16, y=2, w=22, h=28)
+        self.component_selector = Panel(title="SEL: com", x=38, y=2, w=22, h=28)
+        
+        # 4. Craft Button
+        self.craft_button = Button(text="CRAFT", x=3, y=20, w=8, h=3)
+        self.component_selector.add_child(self.craft_button)
 
-        self.component_list = Panel(title="item", x=128, y=16, h=224, w=176)
-        self.root.add_child(self.component_list)
+        # Build final hierarchy
+        self.add_child(self.blueprint_panel)
+        self.add_child(self.panel_stack)
+        self.add_child(self.component_list)
+        self.add_child(self.component_selector)
 
-        self.component_selector = Panel(title="SEL: com", x=304, y=16, h=224, w=176)
-        self.root.add_child(self.component_selector)
+    def handle_event(self, event, mx, my):
+        # 1. Standard Widget Interception
+        if super().handle_event(event, mx, my):
+            return True
 
-        self.craft_button = Button(text="CRAFT", x=328, y=176, h=32, w=64)
-        self.root.add_child(self.craft_button)
-
-
-
-    def handle_event(self, event, game_state):
+        # 2. Key Input (Blueprint Navigation)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
                 self.selection_index += 1
@@ -39,43 +50,34 @@ class WorkshopView:
                 self.selection_index = max(0, self.selection_index - 1)
                 return True
             if event.key in [pygame.K_SPACE, pygame.K_RETURN]:
-                blueprints = game_state['crafting_system'].get_all_blueprints()
-                if 0 <= self.selection_index < len(blueprints):
-                    bp = blueprints[self.selection_index]
-                    print(f"Crafting selected: {bp.name}")
+                blueprint_system = self.game_state.get('crafting_system')
+                if blueprint_system:
+                    blueprints = blueprint_system.get_all_blueprints()
+                    if 0 <= self.selection_index < len(blueprints):
+                        bp = blueprints[self.selection_index]
+                        print(f"Crafting selected: {bp.name}")
                 return True
         return False
 
-    def draw(self, buffer, game_state):
-        COLOR_ACCENT = styles.get_color("accent")
-        COLOR_FG = styles.get_color("fg")
-        COLOR_DIM = styles.get_color("dim")
+    def draw_view(self, buffer, game_state):
+        # 1. Standard widget hierarchy draw
+        super().draw_view(buffer, game_state)
         
-        self.root.draw(buffer)
-        # self.blueprint_panel.draw(buffer)
-        # self.panel_stack.draw(buffer)
-        # self.component_list.draw(buffer)
-        # self.component_selector.draw(buffer)
-        # Grid Alignment (multiples of 8)
+        # 2. Dynamic Blueprint List (Simplistic pixel-based for now)
+        blueprint_system = game_state.get('crafting_system')
+        if not blueprint_system: return
+        
+        blueprints = blueprint_system.get_all_blueprints()
         px, py, pw, ph = 0, 32, 128, 232
         
-        blueprints = game_state['crafting_system'].get_all_blueprints()
         body_f = styles.get_font("Body")
-        small_f = styles.get_font("Small")
-        
-        for i, bp in enumerate(blueprints):
-            if i > 10: break
-            
-            # Row baseline at 8px multiples. List starts at y=36.
-            y_row = 36 + i * 16
-            
-            is_sel = (i == self.selection_index)
-            color = COLOR_ACCENT if is_sel else COLOR_FG
-            
-            if is_sel:
-                # Row highlight
-                pygame.draw.rect(buffer, (40, 35, 30), (px + 8, y_row, pw - 16, 16))
-            
-            if body_f:
-                # Vertical center text in 16px row (baseline approx +12)
-                body_f.draw(buffer, f"{bp.name.upper()}", px + 16, y_row + 12, color)
+        if body_f:
+            for i, bp in enumerate(blueprints):
+                # if i > 12: break
+                y_row = 2 + i * 2
+                is_sel = (i == self.selection_index)
+                color = styles.get_color("accent") if is_sel else styles.get_color("fg")
+                # if is_sel:
+                    # pygame.draw.rect(buffer, (40, 35, 30), (px + 8, y_row, pw - 16, 16))
+                # body_f.draw(buffer, f"{bp.name.upper()}", px + 16, y_row + 12, color)
+                self.blueprint_list.add_child(RowItem(text=bp.name.upper(), x=0.5, y=i*2, w=12, h=1, padding=0.5))

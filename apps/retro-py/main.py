@@ -1,6 +1,7 @@
 import pygame
 import sys
 import os
+import importlib
 
 # Add murex_lab to path for game logic
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../murex_lab')))
@@ -84,6 +85,51 @@ def main():
         "SETTINGS": SettingsView(),
         "TEST": TestUIView()
     }
+
+    def reload_views():
+        print("--- HOT RELOADING ---")
+        try:
+            # 1. Reload UI Library
+            import ui_components
+            importlib.reload(ui_components)
+            
+            # Re-apply fonts to the new styles object
+            ui_components.styles.set_font("H1", fonts.get("fixedsys"))
+            ui_components.styles.set_font("H2", fonts.get("press-start-2p"))
+            ui_components.styles.set_font("Body", fonts.get("minecraftia"))
+            ui_components.styles.set_font("Small", fonts.get("silkscreen-400"))
+            
+            # Update main.py's own references to these global instances
+            global styles, overlays
+            styles = ui_components.styles
+            overlays = ui_components.overlays
+            
+            # 2. Reload View Modules
+            import views.map_view
+            import views.workshop_view
+            import views.inventory_view
+            import views.minions_view
+            import views.settings_view
+            import views.test_ui_view
+            
+            importlib.reload(views.map_view)
+            importlib.reload(views.workshop_view)
+            importlib.reload(views.inventory_view)
+            importlib.reload(views.minions_view)
+            importlib.reload(views.settings_view)
+            importlib.reload(views.test_ui_view)
+            
+            # 3. Re-instantiate Views
+            view_instances["MAP"] = views.map_view.MapView()
+            view_instances["WORKSHOP"] = views.workshop_view.WorkshopView()
+            view_instances["INVENTORY"] = views.inventory_view.InventoryView()
+            view_instances["MINIONS"] = views.minions_view.MinionsView()
+            view_instances["SETTINGS"] = views.settings_view.SettingsView()
+            view_instances["TEST"] = views.test_ui_view.TestUIView()
+            
+            print("SUCCESS: Reloaded all modules and views.")
+        except Exception as e:
+            print(f"FAILED: Hot-reload error: {e}")
     
     active_tab = tabs[active_tab_index]
     active_view = view_instances.get(active_tab)
@@ -155,6 +201,8 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F1: # Toggle debug
                     DEBUG = not DEBUG
+                if event.key == pygame.K_F2: # Hot Reload
+                    reload_views()
                 
             # Tab Navigation
             if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
@@ -186,7 +234,12 @@ def main():
             }
             
             if active_view:
-                result = active_view.handle_event(event, game_state)
+                # Support new BaseView API while keeping legacy handle_event for migration
+                if hasattr(active_view, "dispatch_view_event"):
+                    result = active_view.dispatch_view_event(event, game_state)
+                else:
+                    result = active_view.handle_event(event, game_state)
+                
                 if result == "GOTO_WORKSHOP":
                     active_tab_index = tabs.index("WORKSHOP")
                     active_tab = "WORKSHOP"
@@ -224,7 +277,10 @@ def main():
         }
         
         if active_view:
-            active_view.draw(video_buffer, game_state)
+            if hasattr(active_view, "draw_view"):
+                active_view.draw_view(video_buffer, game_state)
+            else:
+                active_view.draw(video_buffer, game_state)
             
         # Draw Overlays (Dropdowns, Tooltips) last
         overlays.draw(video_buffer)

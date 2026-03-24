@@ -1,22 +1,18 @@
 import pygame
-from ui_components import Widget, Label, Panel, PanelStack, Button, styles
+import os
+from ui_components import BaseView, Panel, Label, Button, Widget, styles, PanelStack
 
-class MapView:
+class MapView(BaseView):
     def __init__(self):
+        super().__init__()
         self.selection_index = 0
         self.active_region = None
-
-        # ========================
-        # 0. Root Canvas
-        # ========================
-        self.root = Widget(0, 24, 480, 240)
-        
 
         # ========================
         # 1. World Map Panel
         # ========================
         self.map_panel = Panel(title="WORLD")
-
+        self.add_child(self.map_panel)
 
         # ========================
         # 2. World Map
@@ -27,29 +23,28 @@ class MapView:
         # ========================
         # 3. Location Details Panel
         # ========================
-        self.location_details = Panel(x=384, y=0, w=96, h=64, title="LOC~ DATA")
-        self.tile_coord = Label(x=12, y=12, text=f"POS: ~,~")
-        self.tile_name = Label(x=12, y=28, text=f"AREA: ~~~~")
+        self.location_details = Panel(x=48, y=0, w=12, h=8, title="LOC~ DATA")
+        self.tile_coord = Label(x=1.5, y=1.5, text=f"POS: ~,~")
+        self.tile_name = Label(x=1.5, y=3.5, text=f"AREA: ~~~~")
         self.location_details.add_child(self.tile_coord)
         self.location_details.add_child(self.tile_name)
-
-        self.root.add_child(self.location_details)
+        self.add_child(self.location_details)
 
 
         # ========================
         # 4. Navigation Panel
         # ========================
-        self.nav_panel = Panel(x=0, y=192, w=64, h=48)
-
-        self.root.add_child(self.nav_panel)
+        self.nav_panel = Panel(x=0, y=24, w=8, h=6)
+        self.add_child(self.nav_panel)
 
         # ========================
         # 5. Regional Map Panel
         # ========================
         self.regional_panel = Panel(title="REGIONAL")
+        self.add_child(self.regional_panel)
 
         self.map_stack = PanelStack(panels=[self.map_panel, self.regional_panel])
-        self.root.add_child(self.map_stack)
+        self.add_child(self.map_stack)
 
     def do_move(self, dx, dy, world_map):
         if self.active_region:
@@ -57,18 +52,12 @@ class MapView:
         else:
             world_map.move_player(dx, dy)
 
-    def handle_event(self, event, game_state):
-        world_map = game_state['world_map']
-        
-        # Scale mouse for widgets
-        mx, my = pygame.mouse.get_pos()
-        scale = game_state.get('scale', 1)
-        vx, vy = mx // scale, my // scale
-
+    def handle_event(self, event, mx, my):
         # 1. Widget Interception (Tab, Buttons, etc)
-        if self.root.handle_event(event, vx, vy):
+        if super().handle_event(event, mx, my):
             return True
 
+        world_map = self.game_state['world_map']
         if event.type == pygame.KEYDOWN:
             dx, dy = 0, 0
             if event.key == pygame.K_UP: dy = -1
@@ -89,7 +78,7 @@ class MapView:
                         loot = self.active_region.hunt(rx, ry)
                     
                     if loot:
-                        inv = game_state['player_inventory'] if world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y']).type == 'lab' else game_state['player_backpack']
+                        inv = self.game_state['player_inventory'] if world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y']).type == 'lab' else self.game_state['player_backpack']
                         import random
                         for item_id in loot:
                             inv.add_item(item_id, random.randint(1, 2))
@@ -112,7 +101,7 @@ class MapView:
 
         return False
 
-    def draw(self, buffer, game_state):
+    def draw_view(self, buffer, game_state):
         world_map = game_state['world_map']
         COLOR_ACCENT = styles.get_color("accent")
         COLOR_FG = styles.get_color("fg")
@@ -137,12 +126,10 @@ class MapView:
                     "left":  pygame.image.load(os.path.join(ui_dir, "◀-7px.png")).convert_alpha(),
                     "right": pygame.image.load(os.path.join(ui_dir, "▶-7px.png")).convert_alpha()
                 }
-                
-                # Initialize Nav Buttons
-                self.nav_panel.add_child(Button(x=24, y=8, icon=self.arrows["up"], callback=lambda: self.do_move(0, -1, world_map), border=False))
-                self.nav_panel.add_child(Button(x=24, y=24, icon=self.arrows["down"], callback=lambda: self.do_move(0, 1, world_map), border=False))
-                self.nav_panel.add_child(Button(x=8, y=24, icon=self.arrows["left"], callback=lambda: self.do_move(-1, 0, world_map), border=False))
-                self.nav_panel.add_child(Button(x=40, y=24, icon=self.arrows["right"], callback=lambda: self.do_move(1, 0, world_map), border=False))
+                self.nav_panel.add_child(Button(x=3, y=1, icon=self.arrows["up"], callback=lambda: self.do_move(0, -1, world_map), border=False))
+                self.nav_panel.add_child(Button(x=3, y=3, icon=self.arrows["down"], callback=lambda: self.do_move(0, 1, world_map), border=False))
+                self.nav_panel.add_child(Button(x=1, y=3, icon=self.arrows["left"], callback=lambda: self.do_move(-1, 0, world_map), border=False))
+                self.nav_panel.add_child(Button(x=5, y=3, icon=self.arrows["right"], callback=lambda: self.do_move(1, 0, world_map), border=False))
 
                 print(f"SUCCESS: Loaded individual 7px arrow sprites and initialized nav buttons from {ui_dir}")
             except Exception as e:
@@ -159,7 +146,8 @@ class MapView:
         # ========================
         margin = 5
         content_w = buffer.get_width() - (margin * 2)
-        content_h = buffer.get_height() - (margin + 36) # Below header
+        content_h = buffer.get_height() - (margin + 36)
+        
         
         if not self.active_region:
             # MAP AS BACKGROUND (padded)
