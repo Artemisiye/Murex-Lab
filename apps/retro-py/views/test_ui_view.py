@@ -1,5 +1,5 @@
 import pygame
-from ui_components import BaseView, Panel, Label, RowItem, Button, ScrollContainer, Slider, Dropdown, TextField, PanelStack, styles
+from ui import *
 
 class TestUIView(BaseView):
     """

@@ -9,7 +9,7 @@ from ctypes import wintypes
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../murex_lab')))
 
 from renderer import SpriteFont
-from ui_components import Widget, Label, Panel, Button, styles, overlays
+from ui import *
 
 # Game Logic Imports
 from modules.crafting import CraftingManager

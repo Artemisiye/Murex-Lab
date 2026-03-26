@@ -1,5 +1,5 @@
 import pygame
-from ui_components import BaseView, Panel, Button, Label, ScrollContainer, PanelStack, RowItem, styles
+from ui import *
 
 class WorkshopView(BaseView):
     """

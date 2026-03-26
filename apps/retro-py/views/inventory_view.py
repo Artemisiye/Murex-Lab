@@ -1,5 +1,5 @@
 import pygame
-from ui_components import BaseView, Panel, Label, styles, GRID_SIZE
+from ui import *
 
 class InventoryView(BaseView):
     def __init__(self):

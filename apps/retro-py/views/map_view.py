@@ -1,6 +1,6 @@
 import pygame
 import os
-from ui_components import BaseView, Panel, Label, Button, Widget, styles, PanelStack
+from ui import *
 
 class MapView(BaseView):
     def __init__(self):

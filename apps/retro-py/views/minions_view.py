@@ -1,5 +1,5 @@
 import pygame
-from ui_components import BaseView, Panel, Label, styles
+from ui import *
 
 class MinionsView(BaseView):
     def __init__(self):
