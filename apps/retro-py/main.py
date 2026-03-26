@@ -2,6 +2,8 @@ import pygame
 import sys
 import os
 import importlib
+import ctypes
+from ctypes import wintypes
 
 # Add murex_lab to path for game logic
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../murex_lab')))
@@ -15,13 +17,39 @@ from modules.inventory import Inventory
 from modules.world_map import map_manager
 from modules.minions import Minion
 
+# --- WIN32 RAM MONITORING ---
+def get_ram_usage():
+    try:
+        class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
+            _fields_ = [
+                ("cb", wintypes.DWORD),
+                ("PageFaultCount", wintypes.DWORD),
+                ("PeakWorkingSetSize", ctypes.c_size_t),
+                ("WorkingSetSize", ctypes.c_size_t),
+                ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                ("PagefileUsage", ctypes.c_size_t),
+                ("PeakPagefileUsage", ctypes.c_size_t),
+            ]
+        process_handle = ctypes.windll.kernel32.GetCurrentProcess()
+        counters = PROCESS_MEMORY_COUNTERS()
+        ctypes.windll.psapi.GetProcessMemoryInfo(process_handle, ctypes.byref(counters), ctypes.sizeof(counters))
+        return counters.WorkingSetSize // (1024 * 1024)
+    except:
+        return 0
+
 def main():
     pygame.init()
+    
+    import config_manager
+    user_settings = config_manager.load_settings()
     
     # Virtual resolution (Retro native)
     V_WIDTH, V_HEIGHT = 480, 270
     config = {
-        "scale": 4,
+        "scale": user_settings.get("config", {}).get("scale", 4),
         "v_width": V_WIDTH,
         "v_height": V_HEIGHT
     }
@@ -59,10 +87,11 @@ def main():
                 print(f"Error loading {f}: {e}")
     
     # Initialize Standard Font Styles (RETRO_STYLES.md)
-    styles.set_font("H1", fonts.get("fixedsys"))
-    styles.set_font("H2", fonts.get("press-start-2p"))
-    styles.set_font("Body", fonts.get("minecraftia"))
-    styles.set_font("Small", fonts.get("silkscreen-400"))
+    user_fonts = user_settings.get("fonts", {})
+    styles.set_font("H1", fonts.get(user_fonts.get("H1", "fixedsys")))
+    styles.set_font("H2", fonts.get(user_fonts.get("H2", "press-start-2p")))
+    styles.set_font("Body", fonts.get(user_fonts.get("Body", "minecraftia")))
+    styles.set_font("Small", fonts.get(user_fonts.get("Small", "silkscreen-400")))
     
     # UI State
     tabs = ["MAP", "WORKSHOP", "INVENTORY", "MINIONS", "SETTINGS", "TEST"]
@@ -87,20 +116,21 @@ def main():
     }
 
     def reload_views():
+        """Hot-reloads UI library and view modules without restarting the game."""
         print("--- HOT RELOADING ---")
+        global styles, overlays
         try:
             # 1. Reload UI Library
             import ui_components
             importlib.reload(ui_components)
             
             # Re-apply fonts to the new styles object
-            ui_components.styles.set_font("H1", fonts.get("fixedsys"))
-            ui_components.styles.set_font("H2", fonts.get("press-start-2p"))
-            ui_components.styles.set_font("Body", fonts.get("minecraftia"))
-            ui_components.styles.set_font("Small", fonts.get("silkscreen-400"))
+            ui_components.styles.set_font("H1", styles.get_font("H1"))
+            ui_components.styles.set_font("H2", styles.get_font("H2"))
+            ui_components.styles.set_font("Body", styles.get_font("Body"))
+            ui_components.styles.set_font("Small", styles.get_font("Small"))
             
             # Update main.py's own references to these global instances
-            global styles, overlays
             styles = ui_components.styles
             overlays = ui_components.overlays
             
@@ -135,21 +165,22 @@ def main():
     active_view = view_instances.get(active_tab)
     
     clock = pygame.time.Clock()
+    start_time = pygame.time.get_ticks()
     DEBUG = False
+    
+    # Standard HD Debug Font (renders above the CRT layer)
+    hd_font = pygame.font.SysFont("Consolas", 12)
 
     # --- CRT Settings & Base State ---
-    crt_settings = {
-        "enabled": True,
-        "scanline_alpha": 30,
-        "grille_alpha": 12,
-        "bloom_alpha": 35,
-        "bloom_offset": 1
-    }
+    crt_settings = user_settings.get("crt_settings", {}).copy()
+    if not crt_settings:
+        crt_settings = config_manager.DEFAULT_SETTINGS["crt_settings"].copy()
     last_crt_settings = crt_settings.copy()
     last_scale = config["scale"]
     crt_overlay = pygame.Surface((V_WIDTH * config["scale"], V_HEIGHT * config["scale"]), pygame.SRCALPHA)
 
     def update_crt_overlay(surface, settings, scale):
+        """Redraws the CRT phosphor and scanline meshes onto the provided surface."""
         surface.fill((0, 0, 0, 0))
         if not settings["enabled"]:
             return
@@ -186,6 +217,18 @@ def main():
         mx, my = pygame.mouse.get_pos()
         # Scale mouse to virtual coords
         scale = config["scale"]
+        
+        # --- Handle Scale & Settings Changes ---
+        if scale != last_scale:
+            screen = pygame.display.set_mode((V_WIDTH * scale, V_HEIGHT * scale), pygame.RESIZABLE)
+            crt_overlay = pygame.Surface((V_WIDTH * scale, V_HEIGHT * scale), pygame.SRCALPHA)
+            update_crt_overlay(crt_overlay, crt_settings, scale)
+            last_scale = scale
+            last_crt_settings = crt_settings.copy()
+        elif crt_settings != last_crt_settings:
+            update_crt_overlay(crt_overlay, crt_settings, scale)
+            last_crt_settings = crt_settings.copy()
+            
         vmx, vmy = mx // scale, my // scale
         click = False
 
@@ -230,7 +273,8 @@ def main():
                 "all_fonts": fonts,
                 "scale": scale,
                 "config": config,
-                "crt_settings": crt_settings
+                "crt_settings": crt_settings,
+                "debug": DEBUG
             }
             
             if active_view:
@@ -273,7 +317,8 @@ def main():
             "all_fonts": fonts,
             "scale": scale,
             "config": config,
-            "crt_settings": crt_settings
+            "crt_settings": crt_settings,
+            "debug": DEBUG
         }
         
         if active_view:
@@ -305,44 +350,81 @@ def main():
             
             # Button width: Text width + 4px padding (centered, 2px each side)
             tab_w = tab_f.get_width(display_name) + 4
-            tab_rect = pygame.Rect(tab_x, 4, tab_w, 16) # Centered in 24px height strip? No, 8px rule.
-            # If strip is 24, second line is y=8 to 16. Center at y=16.
-            # Rect covering row 1 & 2 (8-24) or centered?
-            # User previously had (tab_x, 8, tab_w, 16). Let's keep y=4 height=16 for visual centering in 24px strip.
-            tab_rect = pygame.Rect(tab_x, 4, tab_w, 16) 
+            # Shifted up to match baseline at 16 (12px font needs y=3 to 17)
+            tab_rect = pygame.Rect(tab_x, 3, tab_w, 15) 
             
             if is_active:
-                pygame.draw.rect(video_buffer, COLOR_ACCENT, tab_rect, 1)
+                pygame.draw.rect(video_buffer, COLOR_ACCENT, tab_rect)
+                text_col = COLOR_PANEL
+            elif tab_rect.collidepoint(vmx, vmy):
+                pygame.draw.rect(video_buffer, (40, 35, 30), tab_rect)
+                text_col = COLOR_ACCENT
+            else:
+                text_col = COLOR_DIM
             
-            if tab_rect.collidepoint(vmx, vmy):
-                if not is_active:
-                    pygame.draw.rect(video_buffer, (40, 35, 30), tab_rect)
-                if click:
-                    active_tab_index = i
-                    active_tab = tabs[active_tab_index]
-                    active_view = view_instances.get(active_tab)
-                    if active_view and hasattr(active_view, "selection_index"):
-                        active_view.selection_index = 0
+            if click and tab_rect.collidepoint(vmx, vmy):
+                active_tab_index = i
+                active_tab = tabs[active_tab_index]
+                active_view = view_instances.get(active_tab)
+                if active_view and hasattr(active_view, "selection_index"):
+                    active_view.selection_index = 0
             
             # Center text in button, baseline at y=16 (second line of 24px strip)
             text_x = tab_x + (tab_w - tab_f.get_width(display_name)) // 2
-            tab_f.draw(video_buffer, display_name, text_x, 16, COLOR_FG if is_active else COLOR_DIM)
+            tab_f.draw(video_buffer, display_name, text_x, 16, text_col)
             
             # Move to next tab with 4px gap
             tab_x += tab_w + 4
 
-        # Debug Overlay: Cursor Coordinates
-        if DEBUG:
-             debug_font = styles.get_font("Small")
-             if debug_font:
-                 coord_text = f"X:{vmx} Y:{vmy}"
-                 # Ensure visual clarity
-                 text_w = debug_font.get_width(coord_text)
-                 pygame.draw.rect(video_buffer, (0, 0, 0), (vmx + 4, vmy, text_w + 4, 4))
-                 debug_font.draw(video_buffer, coord_text, vmx + 6, vmy + 2, (0, 255, 0))
 
         # 2. Scale and Blit to screen
         pygame.transform.scale(video_buffer, (V_WIDTH * scale, V_HEIGHT * scale), screen)
+        
+        # --- HD DEBUG OVERLAY (Renders above CRT & Scaling) ---
+        if DEBUG:
+             # 1. Draw 8x8 virtual grid (HD)
+             grid_color = (0, 60, 0) 
+             for gx in range(0, V_WIDTH, 8):
+                 pygame.draw.line(screen, grid_color, (gx * scale, 0), (gx * scale, V_HEIGHT * scale))
+             for gy in range(0, V_HEIGHT, 8):
+                 pygame.draw.line(screen, grid_color, (0, gy * scale), (V_WIDTH * scale, gy * scale))
+
+             if hd_font:
+                 fps = int(clock.get_fps())
+             ms = clock.get_rawtime()
+             uptime = (pygame.time.get_ticks() - start_time) // 1000
+             up_min, up_sec = divmod(uptime, 60)
+             
+             # Fetch focus/captured state (Lower case)
+             focused_name = "none"
+             captured_name = "none"
+             if active_view:
+                 # Check if the view is a BaseView child (Focusable)
+                 all_f = active_view.get_focusable_widgets() if hasattr(active_view, "get_focusable_widgets") else []
+                 focused = next((w for w in all_f if w.is_focused), None)
+                 captured = next((w for w in all_f if w.is_captured), None)
+                 if focused: focused_name = focused.__class__.__name__.lower()
+                 if captured: captured_name = captured.__class__.__name__.lower()
+
+             # World Position
+             wx, wy = world_map.player_pos['x'], world_map.player_pos['y']
+             
+             # Real RAM usage (Win32)
+             ram_val = get_ram_usage()
+             ram_str = f"{ram_val}MB"
+             
+             # Format metrics with stable padding
+             ms_str = f"{ms:02}"
+             v_name = active_tab.lower()
+             
+             debug_text = f"FPS {fps} | TIME {ms_str}ms | UP {up_min:02}:{up_sec:02} | VIEW {v_name} | WORLD {wx},{wy} | FOCUS {focused_name} | CAPT {captured_name} | RAM {ram_str} | POS {vmx},{vmy}"
+             
+             # Solid black background rectangle
+             tw, th = hd_font.size(debug_text)
+             pygame.draw.rect(screen, (0, 0, 0), (0, screen.get_height() - th - 8, screen.get_width(), th + 8))
+             
+             txt_surf = hd_font.render(debug_text, True, (0, 255, 0))
+             screen.blit(txt_surf, (10, screen.get_height() - th - 4))
         
         # --- RADIANT CRT BLOOM (Phosphor Halation) ---
         if crt_settings["enabled"] and crt_settings["bloom_alpha"] > 0:
@@ -374,27 +456,6 @@ def main():
             
             screen.blit(crt_overlay, (0, 0))
 
-        # 3. HIGH-RES DEBUG OVERLAY
-        if DEBUG:
-            # Draw green 8x8 virtual grid on top of EVERYTHING
-            grid_color = (0, 100, 0)
-            for x in range(0, V_WIDTH, 8):
-                pygame.draw.line(screen, grid_color, (x * scale, 0), (x * scale, V_HEIGHT * scale))
-            for y in range(0, V_HEIGHT, 8):
-                pygame.draw.line(screen, grid_color, (0, y * scale), (V_WIDTH * scale, y * scale))
-
-            sys_f = pygame.font.SysFont("monospace", 14)
-            # Performance stats
-            stats = [
-                f"FPS: {int(clock.get_fps())}",
-                f"POS: {world_map.player_pos['x']},{world_map.player_pos['y']}",
-                f"TAB: {active_tab}",
-                f"SEL: {active_view.selection_index if active_view and hasattr(active_view, 'selection_index') else 'N/A'}"
-            ]
-            for i, line in enumerate(stats):
-                txt = sys_f.render(line, True, (255, 255, 255))
-                screen.blit(sys_f.render(line, True, (0,0,0)), (12, 96 + i*16))
-                screen.blit(txt, (10, 96 + i*16))
         
         pygame.display.flip()
         clock.tick(60)

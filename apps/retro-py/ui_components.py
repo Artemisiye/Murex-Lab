@@ -66,6 +66,7 @@ class Widget:
         self.shadow_color = styles.get_color("shadow")
         self.is_focused = False
         self.can_focus = False
+        self.is_captured = False
         self.clip_children = False
 
         if children:
@@ -83,6 +84,7 @@ class Widget:
     
     def blur(self):
         self.is_focused = False
+        self.is_captured = False
         
     def add_child(self, child):
         child.parent = self
@@ -180,9 +182,17 @@ class Widget:
         # Coordinate check for performance and containment
         # (Optional: check if mouse is inside absolute rect before passing to children)
 
+        # 1. Prioritize captured widgets (modal behavior)
         for child in reversed(self.children):
-            if child.handle_event(event, mx, my):
-                return True
+            if child.visible and getattr(child, 'is_captured', False):
+                if child.handle_event(event, mx, my):
+                    return True
+                    
+        # 2. Normal Dispatch (excluding captured to avoid double-process)
+        for child in reversed(self.children):
+            if child.visible and not getattr(child, 'is_captured', False):
+                if child.handle_event(event, mx, my):
+                    return True
                 
         if self.parent is None and event.type == pygame.MOUSEBUTTONDOWN:
             for w in self.get_focusable_widgets():
@@ -197,6 +207,120 @@ class Widget:
         how the widget reacts to clicks or key presses.
         """
         return False
+
+
+class FocusManager:
+    """Manages spatial UI navigation across the Widget tree."""
+    def __init__(self, root_view):
+        self.root = root_view
+
+    def navigate(self, direction):
+        all_focusable = self.root.get_focusable_widgets()
+        if not all_focusable: return False
+        
+        current = next((w for w in all_focusable if w.is_focused), None)
+        if not current:
+            all_focusable[0].focus()
+            return True
+
+        # Scoping: If current or an ancestor is captured, stay inside.
+        capture_root = self.root
+        is_escaping = False
+        
+        if getattr(current, 'is_captured', False):
+            capture_root = current
+        else:
+            node = current.parent
+            while node:
+                if getattr(node, 'is_captured', False):
+                    capture_root = node
+                    break
+                node = node.parent
+
+        def find_best(scope_widget, exclude_widget=None):
+            scope_focusable = scope_widget.get_focusable_widgets()
+            origin_rect = current.get_absolute_rect()
+            origin_cx = origin_rect.centerx
+            origin_cy = origin_rect.centery
+            
+            candidates = []
+            for w in scope_focusable:
+                if w == current or (exclude_widget and w in exclude_widget.get_focusable_widgets()):
+                    continue
+                    
+                w_rect = w.get_absolute_rect()
+                w_cx = w_rect.centerx
+                w_cy = w_rect.centery
+                
+                dx = w_cx - origin_cx
+                dy = w_cy - origin_cy
+                valid = False
+                
+                if direction == pygame.K_RIGHT and dx > 0: valid = True
+                elif direction == pygame.K_LEFT and dx < 0: valid = True
+                elif direction == pygame.K_DOWN and dy > 0: valid = True
+                elif direction == pygame.K_UP and dy < 0: valid = True
+
+                if valid:
+                    if direction in [pygame.K_LEFT, pygame.K_RIGHT]:
+                        primary = abs(dx)
+                        secondary = abs(dy) * 3
+                    else:
+                        primary = abs(dy)
+                        secondary = abs(dx) * 3
+                        
+                    score = primary + secondary
+                    candidates.append((score, w))
+            
+            if candidates:
+                candidates.sort(key=lambda c: c[0])
+                return candidates[0][1]
+            return None
+
+        # Container Search: Look inside current container. Fallback to outer (unless captured).
+        node = current.parent
+        prev_node = None
+        best = find_best(current) if current == capture_root else None
+        
+        if not best:
+            while node:
+                best = find_best(node, exclude_widget=prev_node)
+                if best: break
+                if node == capture_root:
+                    # We hit the capture boundary and found nothing.
+                    is_escaping = True
+                    break
+                prev_node = node
+                node = node.parent
+            
+        if not best and not is_escaping:
+             best = find_best(self.root, exclude_widget=prev_node)
+             
+        if best:
+            current.blur()
+            best.focus()
+            return True
+        elif is_escaping and capture_root != self.root:
+            # User navigated "out" of a captured container
+            current.blur()
+            capture_root.is_captured = False
+            capture_root.focus()
+            return True
+            
+        return False
+
+    def draw_debug(self, surface):
+        """Draws a red outline around focused, blue around captured, and yellow around focusable widgets."""
+        all_focusable = self.root.get_focusable_widgets()
+        for w in all_focusable:
+            # Decide color priority: Captured > Focused > Focusable
+            if getattr(w, 'is_captured', False):
+                color = (0, 191, 255) # Deep Sky Blue
+            elif w.is_focused:
+                color = (255, 0, 0) # Red
+            else:
+                color = (255, 255, 0) # Yellow
+            pygame.draw.rect(surface, color, w.get_absolute_rect(), 1)
 
 
 # ========================
@@ -215,6 +339,7 @@ class BaseView(Widget):
         kwargs.setdefault('w', 60)
         kwargs.setdefault('h', 30)
         super().__init__(**kwargs)
+        self.focus_manager = FocusManager(self)
 
     def dispatch_view_event(self, event, game_state):
         """
@@ -228,7 +353,15 @@ class BaseView(Widget):
         mx, my = pygame.mouse.get_pos()
         scale = game_state.get('scale', 1)
         vx, vy = mx // scale, my // scale
-        return self.handle_event(event, vx, vy)
+        
+        consumed = self.handle_event(event, vx, vy)
+        
+        # Unconsumed Arrow Keys -> FocusManager Spatial Navigation
+        if not consumed and event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
+                consumed = self.focus_manager.navigate(event.key)
+                
+        return consumed
 
     def draw_view(self, surface, game_state):
         """
@@ -238,13 +371,16 @@ class BaseView(Widget):
         """
         self.game_state = game_state
         self.draw(surface)
+        
+        if game_state.get('debug', False):
+            self.focus_manager.draw_debug(surface)
 
 
 # ========================
 # Label
 # ========================
 class Label(Widget):
-    def __init__(self, text="", x=0, y=0, color=None, role="Body", align="left", padding=0):
+    def __init__(self, text="", x=0, y=0, color=None, role="Body", align="left", can_focus=False):
         font = styles.get_font(role)
         # Convert pixel metrics to grid units for the bounding box
         w = (font.get_width(text) / GRID_SIZE) if font else 2
@@ -252,18 +388,33 @@ class Label(Widget):
         
         super().__init__(x, y, w, h)
         self.text = text
-        self.color = color if color else styles.get_color("fg")
+        self.color = color or styles.get_color("fg")
         self.role = role
         self.align = align
-        self.padding = padding
-
+        self.can_focus = can_focus
+        
     def _draw_self(self, surface, abs_rect):
+        if self.can_focus:
+            # Draw highlight block for focused/hovered labels (e.g. in lists)
+            if self.is_focused or getattr(self, 'hovered', False):
+                bg = styles.get_color("accent") if self.is_focused else styles.get_color("select")
+                pygame.draw.rect(surface, bg, abs_rect)
+
         font = styles.get_font(self.role)
         if not font: return
         dx = abs_rect.x
         if self.align == "center": dx -= self.rect.w // 2
         elif self.align == "right": dx -= self.rect.w
-        font.draw(surface, self.text, dx, abs_rect.y + abs_rect.h, self.color)
+        
+        # Color logic
+        if self.is_focused:
+            col = styles.get_color("panel") # Inverted
+        elif getattr(self, 'hovered', False):
+            col = styles.get_color("accent") # Intermediate
+        else:
+            col = self.color
+            
+        font.draw(surface, self.text, dx, abs_rect.y + abs_rect.h, col)
 
 
 # ========================
@@ -277,25 +428,42 @@ class RowItem(Widget):
     """
     def __init__(self, x=0, y=0, w=2, h=2, text="", callback=None, padding=1):
         super().__init__(x, y, w, h, padding=0)
-        self.padding = padding * GRID_SIZE
+        self.text_padding = padding * GRID_SIZE
         self.text = text
         self.callback = callback
         self.can_focus = True
         self.hovered = False
         
     def _draw_self(self, surface, abs_rect):
-        bg = styles.get_color("select") if (self.hovered or self.is_focused) else styles.get_color("panel")
-        if self.hovered or self.is_focused:
-             pygame.draw.rect(surface, bg, abs_rect)
+        if self.is_focused:
+            bg = styles.get_color("accent")
+            fg = styles.get_color("panel")
+        elif self.hovered:
+            bg = styles.get_color("select")
+            fg = styles.get_color("accent")
+        else:
+            bg = styles.get_color("panel")
+            fg = styles.get_color("fg")
+            
+        pygame.draw.rect(surface, bg, abs_rect)
         
         font = styles.get_font("Body")
         if font:
-            col = styles.get_color("accent") if (self.hovered or self.is_focused) else styles.get_color("fg")
-            font.draw(surface, self.text, abs_rect.x + self.padding, abs_rect.y + self.padding/2, col)
+            font.draw(surface, self.text, abs_rect.x + self.text_padding, abs_rect.y + abs_rect.h - self.text_padding/2, fg)
 
     def on_event(self, event, mx, my):
         abs_rect = self.get_absolute_rect()
+        
+        # Keyboard submit
+        if self.is_focused and event.type == pygame.KEYDOWN and event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+            if self.callback: self.callback()
+            return True
+            
+        was_hovered = self.hovered
         self.hovered = abs_rect.collidepoint(mx, my)
+        
+        if self.hovered and not self.is_focused and event.type == pygame.MOUSEMOTION:
+            self.focus()
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.hovered:
             self.focus()
@@ -304,8 +472,6 @@ class RowItem(Widget):
         return False
 
 
-# ========================
-#      | Button |
 # ========================
 class Button(Widget):
     def __init__(self, text="", x=0, y=0, w=None, h=None, 
@@ -345,14 +511,23 @@ class Button(Widget):
         self.i_padding = i_padding
         self.o_padding = o_padding
         self.can_focus = True
+        self.has_shadow = True
 
     def _draw_self(self, surface, abs_rect):
-        # Visual color base
-        bg_color = styles.get_color("select") if (self.hovered or self.is_pressed) else styles.get_color("panel")
-        pygame.draw.rect(surface, bg_color, abs_rect)
+        # Color logic
+        if self.is_focused:
+            bg = styles.get_color("accent")
+            fg = styles.get_color("panel")
+        elif self.hovered or self.is_pressed:
+            bg = styles.get_color("select")
+            fg = styles.get_color("accent")
+        else:
+            bg = styles.get_color("panel")
+            fg = styles.get_color("accent")
+
+        pygame.draw.rect(surface, bg, abs_rect)
         
         if self.border:
-            # Highlight border if focused else normal accent
             border_col = styles.get_color("header") if self.is_focused else styles.get_color("accent")
             pygame.draw.rect(surface, border_col, abs_rect, 1)
         
@@ -367,7 +542,7 @@ class Button(Widget):
         if font and self.text:
             tx = abs_rect.x + (abs_rect.w - font.get_width(self.text)) // 2
             ty = abs_rect.y + self.i_padding*GRID_SIZE + font.effective_h
-            font.draw(surface, self.text, tx, ty, styles.get_color("fg"))
+            font.draw(surface, self.text, tx, ty, fg)
 
     def on_event(self, event, mx, my):
         # Keyboard Activation
@@ -416,20 +591,32 @@ class Panel(Widget):
         if not self.titles:
             pygame.draw.line(surface, styles.get_color("dim"), (x, y), (x + w, y))
         else:
+            curr_x = x
             for t_data in self.titles:
                 t_text = t_data.get("text", "")
                 t_col = t_data.get("color", styles.get_color("accent"))
+                is_active = t_data.get("active", False)
+                is_tab = t_data.get("is_tab", False)
                 tw = font.get_width(t_text) if font else 0
                 
-                # Gap segment
-                gap_start = curr_x + 4
-                pygame.draw.line(surface, styles.get_color("dim"), (curr_x, y), (gap_start, y))
+                # Draw border segment before title
+                line_w = 4
+                pygame.draw.line(surface, styles.get_color("dim"), (curr_x, y), (curr_x + line_w, y))
+                curr_x += line_w
                 
                 if font:
-                    font.draw(surface, t_text, gap_start + 2, y + 5, t_col)
+                    if is_active and is_tab:
+                        # Draw a solid background block for the active tab (8px above baseline)
+                        pygame.draw.rect(surface, styles.get_color("accent"), (curr_x, y - 8, tw + 4, 15))
+                        font.draw(surface, t_text, curr_x + 2, y + 4, styles.get_color("panel"))
+                    else:
+                        font.draw(surface, t_text, curr_x + 2, y + 4, t_col)
                 
-                curr_x = gap_start + tw + 4
-            pygame.draw.line(surface, styles.get_color("dim"), (curr_x, y), (x + w, y))
+                curr_x += tw + 4
+            
+            # Final line segment
+            if curr_x < x + w:
+                pygame.draw.line(surface, styles.get_color("dim"), (curr_x, y), (x + w, y))
 
         # Dividers
         for div_pos, is_vert, div_col in self.dividers:
@@ -446,10 +633,13 @@ class Panel(Widget):
 #                  │
 # ========================
 class ScrollContainer(Widget):
-    def __init__(self, x=0, y=0, w=30, h=18, content_h=None):
+    """A container that clips children and allows vertical scrolling."""
+    def __init__(self, x=0, y=0, w=30, h=18):
         super().__init__(x, y, w, h, padding=0)
-        self.content_h = content_h if content_h is not None else 0
         self.scroll_offset = 0
+        self.content_h = 0
+        self.can_focus = True
+        self.is_captured = False
         self.scrollbar_w = 4
         self.thumb_color = styles.get_color("dim")
         self.clip_children = True
@@ -459,6 +649,20 @@ class ScrollContainer(Widget):
         # Dynamic auto-resize of content height
         if child.rect.bottom > self.content_h:
             self.content_h = child.rect.bottom + 4
+
+    def get_focusable_widgets(self):
+        """Only exposes children to the FocusManager if this container is captured."""
+        if not self.visible: return []
+        
+        widgets = []
+        if self.can_focus:
+            widgets.append(self)
+            
+        # Hide children from global search unless we have explicitly 'entered' this container
+        if self.is_captured:
+            for child in self.children:
+                widgets.extend(child.get_focusable_widgets())
+        return widgets
 
     def _draw_self(self, surface, abs_rect):
         if self.content_h <= self.rect.h: return
@@ -474,42 +678,108 @@ class ScrollContainer(Widget):
         pygame.draw.rect(surface, self.thumb_color, (tx, thumb_y, self.scrollbar_w, thumb_h))
 
     def handle_event(self, event, mx, my):
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        consumed = super().handle_event(event, mx, my)
+        
+        if not consumed and event.type == pygame.KEYDOWN:
+            # Check if any immediate child is focused
+            focused_child_idx = next((i for i, child in enumerate(self.children) if child.is_focused), -1)
+            
+            if focused_child_idx != -1:
+                if event.key == pygame.K_DOWN:
+                    self.children[focused_child_idx].blur()
+                    n = len(self.children)
+                    nxt = (focused_child_idx + 1) % n
+                    while not self.children[nxt].can_focus and nxt != focused_child_idx:
+                        nxt = (nxt + 1) % n
+                    self.children[nxt].focus()
+                    
+                    # Ensure visible
+                    child_rect = self.children[nxt].rect
+                    if child_rect.bottom > self.scroll_offset + self.rect.h:
+                        self.scroll_offset = child_rect.bottom - self.rect.h + self.padding
+                    elif child_rect.top < self.scroll_offset:
+                         self.scroll_offset = max(0, child_rect.top - self.padding)
+                    return True
+                    
+                elif event.key == pygame.K_UP:
+                    self.children[focused_child_idx].blur()
+                    n = len(self.children)
+                    nxt = (focused_child_idx - 1) % n
+                    while not self.children[nxt].can_focus and nxt != focused_child_idx:
+                        nxt = (nxt - 1) % n
+                    self.children[nxt].focus()
+                    
+                    # Ensure visible
+                    child_rect = self.children[nxt].rect
+                    if child_rect.top < self.scroll_offset:
+                        self.scroll_offset = max(0, child_rect.top - self.padding)
+                    elif child_rect.bottom > self.scroll_offset + self.rect.h:
+                        self.scroll_offset = child_rect.bottom - self.rect.h + self.padding
+                    return True
+
+        return consumed
+
+    def on_event(self, event, mx, my):
+        # Keyboard capture toggle
+        if self.is_focused and event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                self.is_captured = not self.is_captured
+                if self.is_captured:
+                    # Focus first focusable child
+                    all_c = self.get_focusable_widgets()
+                    if all_c:
+                        # Skip self (which is at index 0)
+                        if len(all_c) > 1: all_c[1].focus()
+                return True
+            if event.key == pygame.K_ESCAPE and self.is_captured:
+                self.is_captured = False
+                return True
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button in [4, 5]: # Scroll wheel
             if event.button == 4: # Scroll Up
                 self.scroll_offset = max(0, self.scroll_offset - 16)
                 return True
             if event.button == 5: # Scroll Down
                 self.scroll_offset = min(self.content_h - self.rect.h, self.scroll_offset + 16)
                 return True
-        return super().handle_event(event, mx, my)
+        return False
 
 
 # ========================
 # Slider:  -----█---
 # ========================
 class Slider(Widget):
-    def __init__(self, x, y, w, val_min=0, val_max=100, current=50):
-        super().__init__(x, y, w, 2)
+    """
+    A horizontal slider widget for adjusting numerical values.
+    Supports an 'on_change' callback that triggers during interaction.
+    """
+    def __init__(self, x=0, y=0, w=10, val_min=0, val_max=100, current=50, on_change=None, **kwargs):
+        super().__init__(x, y, w, 2, **kwargs)
         self.min = val_min
         self.max = val_max
         self.current = current
         self.dragging = False
         self.can_focus = True
+        self.on_change = on_change
 
     def _draw_self(self, surface, abs_rect):
         y_mid = abs_rect.y + 8
-        pygame.draw.line(surface, styles.get_color("dim"), (abs_rect.x, y_mid), (abs_rect.right, y_mid), 2)
+        # Axis line: stop 1px before edge to stay inside
+        pygame.draw.line(surface, styles.get_color("dim"), (abs_rect.x, y_mid), (abs_rect.right - 1, y_mid), 2)
         
-        # Proportional Handle
-        pos_x = abs_rect.x + int(((self.current - self.min) / (self.max - self.min)) * abs_rect.w)
-        handle_rect = pygame.Rect(pos_x - 4, abs_rect.y + 2, 8, 12)
+        # Proportional Handle (inset 4px from each side to stay within bounds)
+        inset = 4
+        track_w = abs_rect.w - (inset * 2)
+        pos_x = abs_rect.x + inset + int(((self.current - self.min) / (self.max - self.min)) * track_w)
+        handle_rect = pygame.Rect(pos_x - 4, abs_rect.y + 4, 8, 8) # Smaller square handle
         
         h_col = styles.get_color("accent")
-        if self.is_focused: h_col = styles.get_color("header")
+        if self.is_captured: h_col = (255, 255, 255)
+        elif self.is_focused: h_col = styles.get_color("header")
         
         pygame.draw.rect(surface, h_col, handle_rect)
         
-        if self.dragging or self.is_focused:
+        if self.dragging or self.is_focused or self.is_captured:
             # Value Tooltip
             font = styles.get_font("Small")
             if font:
@@ -521,12 +791,22 @@ class Slider(Widget):
         
         # Keyboard Control
         if self.is_focused and event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                self.is_captured = not self.is_captured
+                return True
+                
+        if self.is_captured and event.type == pygame.KEYDOWN:
             step = (self.max - self.min) / 20 # 5% steps
             if event.key == pygame.K_LEFT:
                 self.current = max(self.min, self.current - step)
+                if self.on_change: self.on_change(self.current)
                 return True
             if event.key == pygame.K_RIGHT:
                 self.current = min(self.max, self.current + step)
+                if self.on_change: self.on_change(self.current)
+                return True
+            if event.key == pygame.K_ESCAPE:
+                self.is_captured = False
                 return True
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -543,25 +823,33 @@ class Slider(Widget):
         return False
 
     def _update_val(self, mx, abs_rect):
-        rel_x = max(0, min(abs_rect.w, mx - abs_rect.x))
-        self.current = self.min + (rel_x / abs_rect.w) * (self.max - self.min)
+        inset = 4
+        track_w = max(1, abs_rect.w - (inset * 2))
+        rel_x = max(0, min(track_w, mx - (abs_rect.x + inset)))
+        self.current = self.min + (rel_x / track_w) * (self.max - self.min)
+        if self.on_change: self.on_change(self.current)
 
 
 # ========================
 #  | Dropdown ▼ | 
 # ========================
 class Dropdown(Widget):
-    def __init__(self, x, y, w, options, current_idx=0):
-        super().__init__(x, y, w, 2, padding=0)
-        self.options = options
+    """
+    A modal dropdown menu widget for selecting from a list of options.
+    Toggling the dropdown adds a modal overlay to the screen.
+    """
+    def __init__(self, x=0, y=0, w=10, options=None, current_idx=0, on_change=None, **kwargs):
+        super().__init__(x, y, w, 2, padding=0, **kwargs)
+        self.options = options if options is not None else []
         self.current_idx = current_idx
         self.is_open = False
         self.has_shadow = True
         self.can_focus = True
+        self.on_change = on_change
 
     def _draw_self(self, surface, abs_rect):
         pygame.draw.rect(surface, styles.get_color("textbox_bg"), abs_rect)
-        col = styles.get_color("accent") if self.is_focused else styles.get_color("dim")
+        col = styles.get_color("accent") if (self.is_focused or self.is_open) else styles.get_color("dim")
         pygame.draw.rect(surface, col, abs_rect, 1)
         
         font = styles.get_font("Body")
@@ -588,8 +876,16 @@ class Dropdown(Widget):
                 
                 for i, opt in enumerate(self.options[:8]):
                     opt_y = list_rect.y + i * 16
+                    opt_inner_rect = pygame.Rect(list_rect.x + 1, opt_y + 1, list_rect.w - 2, 14)
+                    
                     if font:
-                        col = styles.get_color("accent") if i == self.current_idx else styles.get_color("fg")
+                        if i == self.current_idx:
+                            # Inverted highlight for the selected option
+                            pygame.draw.rect(surf, styles.get_color("accent"), opt_inner_rect)
+                            col = styles.get_color("panel")
+                        else:
+                            col = styles.get_color("fg")
+                            
                         font.draw(surf, str(opt), list_rect.x + 4, opt_y + 12, col)
             
             overlays.add(draw_overlay)
@@ -599,16 +895,20 @@ class Dropdown(Widget):
         if self.is_focused and event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
                 self.is_open = not self.is_open
+                self.is_captured = self.is_open
                 return True
             if self.is_open:
                 if event.key == pygame.K_UP:
                     self.current_idx = (self.current_idx - 1) % len(self.options)
+                    if self.on_change: self.on_change(self.options[self.current_idx])
                     return True
                 if event.key == pygame.K_DOWN:
                     self.current_idx = (self.current_idx + 1) % len(self.options)
+                    if self.on_change: self.on_change(self.options[self.current_idx])
                     return True
                 if event.key == pygame.K_ESCAPE:
                     self.is_open = False
+                    self.is_captured = False
                     return True
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -616,6 +916,7 @@ class Dropdown(Widget):
             if abs_rect.collidepoint(mx, my):
                 self.focus()
                 self.is_open = not self.is_open
+                self.is_captured = self.is_open
                 return True
             if self.is_open:
                 # Check clicks in list
@@ -625,8 +926,15 @@ class Dropdown(Widget):
                     if idx < len(self.options):
                         self.current_idx = idx
                         self.is_open = False
+                        self.is_captured = False
+                        if self.on_change: self.on_change(self.options[self.current_idx])
                         return True
             self.is_open = False
+            self.is_captured = False
+        
+        # If open, consume all events to behave modally
+        if self.is_open:
+            return True
         return False
 
 
@@ -634,42 +942,70 @@ class Dropdown(Widget):
 #  | Text Field_ |
 # ========================
 class TextField(Widget):
-    def __init__(self, x, y, w, text=""):
-        super().__init__(x, y, w, 2)
+    """
+    An interactive text input widget.
+    Requires 'capture' (Enter/Click) to handle keyboard input.
+    """
+    def __init__(self, x=0, y=0, w=10, text="", on_change=None, role="Body", **kwargs):
+        super().__init__(x, y, w, 2, **kwargs)
         self.text = text
+        self.role = role
         self.cursor_visible = True
         self.last_blink = 0
+        self.can_focus = True
+        self.hovered = False
+        self.on_change = on_change
 
     def _draw_self(self, surface, abs_rect):
         pygame.draw.rect(surface, styles.get_color("textbox_bg"), abs_rect)
-        color = styles.get_color("accent") if self.is_focused else styles.get_color("dim")
-        pygame.draw.rect(surface, color, abs_rect, 1)
         
-        font = styles.get_font("Body")
+        # Color based on capture/focus
+        col = styles.get_color("accent") if (self.is_focused or self.is_captured) else styles.get_color("dim")
+        pygame.draw.rect(surface, col, abs_rect, 1)
+        
+        font = styles.get_font(self.role)
         if font:
             display_text = self.text
-            if self.is_focused and (pygame.time.get_ticks() // 500) % 2 == 0:
+            if self.is_captured and (pygame.time.get_ticks() // 500) % 2 == 0:
                 display_text += "_"
             font.draw(surface, display_text, abs_rect.x + 4, abs_rect.y + 12, styles.get_color("fg"))
 
     def on_event(self, event, mx, my):
+        abs_rect = self.get_absolute_rect()
+        
+        # Hover detection for visual cues (if needed, but not forcing focus)
+        self.hovered = abs_rect.collidepoint(mx, my)
+            
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            abs_rect = self.get_absolute_rect()
             if abs_rect.collidepoint(mx, my):
-                self.is_focused = True
+                self.focus()
+                self.is_captured = True
                 return True
             else:
-                self.is_focused = False
+                self.is_captured = False
                 return False
-        if self.is_focused and event.type == pygame.KEYDOWN:
+                
+        # Toggle capture
+        if self.is_focused and not self.is_captured and event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                self.is_captured = True
+                return True
+                
+        # Type into field
+        if self.is_captured and event.type == pygame.KEYDOWN:
+            old_text = self.text
             if event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
-            elif event.key == pygame.K_RETURN:
-                self.is_focused = False
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
+                self.is_captured = False
             else:
                 if len(event.unicode) > 0 and ord(event.unicode[0]) >= 32:
                     self.text += event.unicode
+                    
+            if self.text != old_text and self.on_change:
+                self.on_change(self.text)
             return True
+            
         return False
 
 
@@ -749,11 +1085,11 @@ class PanelStack(Widget):
             view.visible = (i == self.active_idx)
             
             if view.visible and isinstance(view, Panel):
-                # Inject Tabs into the Child Panel
                 titles = []
                 for j, e in enumerate(self.panels):
-                    color = styles.get_color("accent") if j == self.active_idx else styles.get_color("dim")
-                    titles.append({"text": e["name"], "color": color})
+                    is_active = (j == self.active_idx)
+                    color = styles.get_color("accent") if is_active else styles.get_color("dim")
+                    titles.append({"text": e["name"], "color": color, "active": is_active, "is_tab": True})
                 view.titles = titles
 
     def on_event(self, event, mx, my):
@@ -763,17 +1099,18 @@ class PanelStack(Widget):
             if abs_rect.y <= my <= abs_rect.y + 16:
                 font = styles.get_font("H2")
                 
-                curr_x = abs_rect.x + 4 
+                curr_x = abs_rect.x
                 for i, entry in enumerate(self.panels):
                     name = entry["name"]
                     tw = font.get_width(name) if font else 40
                     if tw == 0: tw = 40
                     
-                    if curr_x <= mx <= curr_x + tw + 4:
+                    # Match the 4px line_w start offset + 4px total padding in _draw_self
+                    if curr_x + 4 <= mx <= curr_x + 4 + tw + 4:
                         self.active_idx = i
                         self._sync_active_panel()
                         return True
-                    curr_x += tw + 4 + 4 # Gap + Text + Gap
+                    curr_x += 4 + tw + 4 # Total horizontal span
         return False
 
 

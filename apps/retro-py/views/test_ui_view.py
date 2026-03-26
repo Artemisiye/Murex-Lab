@@ -2,6 +2,10 @@ import pygame
 from ui_components import BaseView, Panel, Label, RowItem, Button, ScrollContainer, Slider, Dropdown, TextField, PanelStack, styles
 
 class TestUIView(BaseView):
+    """
+    A sandbox view for testing new UI components and layouts.
+    Includes examples of Buttons, Sliders, Dropdowns, and ScrollContainers.
+    """
     def __init__(self):
         super().__init__()
         
@@ -41,7 +45,10 @@ class TestUIView(BaseView):
         
         for i in range(20):
             y_pos = 2.5 + i * 2
-            scroll_area.add_child(Label(f"Log Entry #{i:03d}: System check OK", x=0.5, y=y_pos, color=styles.get_color("dim")))
+            scroll_area.add_child(Label(f"Log Entry #{i:03d}: System check OK", 
+                                        x=0.5, y=y_pos, 
+                                        color=styles.get_color("dim"),
+                                        can_focus=True))
             
         main_panel.add_child(scroll_area)
         

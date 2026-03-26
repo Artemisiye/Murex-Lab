@@ -2,6 +2,10 @@ import pygame
 from ui_components import BaseView, Panel, Button, Label, ScrollContainer, PanelStack, RowItem, styles
 
 class WorkshopView(BaseView):
+    """
+    The Workshop station view where players can craft items from blueprints.
+    Utilizes a multi-panel layout for blueprints, stations, and component selection.
+    """
     def __init__(self):
         super().__init__()
         self.selection_index = 0
@@ -63,21 +67,10 @@ class WorkshopView(BaseView):
         # 1. Standard widget hierarchy draw
         super().draw_view(buffer, game_state)
         
-        # 2. Dynamic Blueprint List (Simplistic pixel-based for now)
-        blueprint_system = game_state.get('crafting_system')
-        if not blueprint_system: return
-        
-        blueprints = blueprint_system.get_all_blueprints()
-        px, py, pw, ph = 0, 32, 128, 232
-        
-        body_f = styles.get_font("Body")
-        if body_f:
-            for i, bp in enumerate(blueprints):
-                # if i > 12: break
-                y_row = 2 + i * 2
-                is_sel = (i == self.selection_index)
-                color = styles.get_color("accent") if is_sel else styles.get_color("fg")
-                # if is_sel:
-                    # pygame.draw.rect(buffer, (40, 35, 30), (px + 8, y_row, pw - 16, 16))
-                # body_f.draw(buffer, f"{bp.name.upper()}", px + 16, y_row + 12, color)
-                self.blueprint_list.add_child(RowItem(text=bp.name.upper(), x=0.5, y=i*2, w=12, h=1, padding=0.5))
+        # 2. Dynamic Blueprint List (Populated only once if empty)
+        if not self.blueprint_list.children:
+            blueprint_system = game_state.get('crafting_system')
+            if blueprint_system:
+                blueprints = blueprint_system.get_all_blueprints()
+                for i, bp in enumerate(blueprints):
+                    self.blueprint_list.add_child(RowItem(text=bp.name.lower(), x=0.5, y=i*2, w=12, h=1, padding=0.5))

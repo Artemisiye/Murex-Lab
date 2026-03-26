@@ -1,4 +1,10 @@
 {
     "gold": 0,
-    "items": {}
+    "items": {
+        "rough_stone": {
+            "item_id": "rough_stone",
+            "quantity": 2,
+            "data": {}
+        }
+    }
 }

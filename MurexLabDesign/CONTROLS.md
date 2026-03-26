@@ -1,9 +1,9 @@
 # Controls
 
 `F1` - Toggle Debug
+`F2` - Reload Views
 `TAB` - Switch Tabs
 `SHIFT + TAB` - Switch Tabs (Reverse)
 `ARROWS` - Move / Navigate UI
 `ENTER / SPACE` - Select / Confirm / Explore
-`BACKSPACE` - Cancel / Backtrack
-`ESC` - Exit Game
+`BACKSPACE / ESC` - Cancel / Backtrack
