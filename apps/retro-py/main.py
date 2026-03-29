@@ -1,23 +1,19 @@
+# [PORTED] Snippet 1: Base Imports and Logic Registration -> engine/core.py & engine/state_manager.py
 import pygame
 import sys
 import os
 import importlib
-import ctypes
-from ctypes import wintypes
 
 # Add murex_lab to path for game logic
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../murex_lab')))
 
-from renderer import SpriteFont
 from ui import *
 
 # Game Logic Imports
-from modules.crafting import CraftingManager
-from modules.inventory import Inventory
-from modules.world_map import map_manager
-from modules.minions import Minion
 
-# --- WIN32 RAM MONITORING ---
+# [TODO] Snippet 1.1: WIN32 RAM MONITORING
+# We currently use a simpler approach in engine/core.py, but this Win32 code is more accurate.
+"""
 def get_ram_usage():
     try:
         class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
@@ -39,6 +35,7 @@ def get_ram_usage():
         return counters.WorkingSetSize // (1024 * 1024)
     except:
         return 0
+"""
 
 def main():
     pygame.init()
@@ -59,7 +56,8 @@ def main():
     
     video_buffer = pygame.Surface((V_WIDTH, V_HEIGHT))
     
-    # --- Initialize Game Logic ---
+    # [PORTED] Snippet 2: Game Logic Initialization -> _main.py
+    """
     data_path = os.path.join(os.path.dirname(__file__), "../murex_lab/data")
     save_path = os.path.join(data_path, 'player_inventory.json')
     backpack_path = os.path.join(data_path, 'player_backpack.json')
@@ -69,8 +67,10 @@ def main():
     player_backpack = Inventory(backpack_path)
     world_map = map_manager(data_path)
     player_minions = [Minion("m_001", "Lead Artificer")]
+    """
 
-    # Font Management
+    # [PORTED] Snippet 3: Font Management & Styles -> _main.py
+    """
     font_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../assets/sprite-fonts"))
     fonts = {}
     current_font_name = None
@@ -92,6 +92,12 @@ def main():
     styles.set_font("H2", fonts.get(user_fonts.get("H2", "press-start-2p")))
     styles.set_font("Body", fonts.get(user_fonts.get("Body", "minecraftia")))
     styles.set_font("Small", fonts.get(user_fonts.get("Small", "silkscreen-400")))
+    """
+    
+    # [PORTED] Snippet 3: Engine Initialization -> _main.py
+    from engine import MurexEngine
+    engine = MurexEngine()
+    engine.boot(title="Murex Lab - Retro Engine")
     
     # UI State
     tabs = ["MAP", "WORKSHOP", "INVENTORY", "MINIONS", "SETTINGS", "TEST"]
@@ -115,6 +121,7 @@ def main():
         "TEST": TestUIView()
     }
 
+    # [PORTED] Snippet 3.1: Hot Reload Function -> _main.py
     def reload_views():
         """Hot-reloads UI library and view modules without restarting the game."""
         print("--- HOT RELOADING ---")
@@ -179,6 +186,7 @@ def main():
     last_scale = config["scale"]
     crt_overlay = pygame.Surface((V_WIDTH * config["scale"], V_HEIGHT * config["scale"]), pygame.SRCALPHA)
 
+    # [PORTED] Snippet 4: CRT Overlay Update Function -> engine/core.py: _update_crt_overlay()
     def update_crt_overlay(surface, settings, scale):
         """Redraws the CRT phosphor and scanline meshes onto the provided surface."""
         surface.fill((0, 0, 0, 0))
@@ -247,20 +255,26 @@ def main():
                 if event.key == pygame.K_F2: # Hot Reload
                     reload_views()
                 
-            # Tab Navigation
+            """
+            # [PORTED] Snippet 4: Tab Navigation -> engine/input_manager.py & MurexEngine.handle_events()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
                 mods = pygame.key.get_mods()
                 if mods & pygame.KMOD_SHIFT:
                     active_tab_index = (active_tab_index - 1) % len(tabs)
                 else:
                     active_tab_index = (active_tab_index + 1) % len(tabs)
+            """
+            pass
             
+            """
             # Tab Change Side Effects
             active_tab = tabs[active_tab_index]
             active_view = view_instances.get(active_tab)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
                 if active_view and hasattr(active_view, "selection_index"):
                     active_view.selection_index = 0
+            """
+            pass
             
             # View-specific Handling (Keyboard, Mouse, etc)
             game_state = {
@@ -330,7 +344,8 @@ def main():
         # Draw Overlays (Dropdowns, Tooltips) last
         overlays.draw(video_buffer)
 
-        # Header & Tabs (Overlay)
+        """
+        # [PORTED] Snippet 5: Global Header & Tabs -> engine/core.py: _render_header()
         pygame.draw.rect(video_buffer, COLOR_PANEL, (0, 0, V_WIDTH, 23))
         h1_f = styles.get_font("H1")
         if h1_f:
@@ -375,6 +390,8 @@ def main():
             
             # Move to next tab with 4px gap
             tab_x += tab_w + 4
+        """
+        pass
 
 
         # 2. Scale and Blit to screen

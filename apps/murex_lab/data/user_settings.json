@@ -1,0 +1,18 @@
+{
+    "config": {
+        "scale": 4
+    },
+    "crt_settings": {
+        "enabled": true,
+        "scanline_alpha": 26,
+        "grille_alpha": 26,
+        "bloom_alpha": 40,
+        "bloom_offset": 1
+    },
+    "fonts": {
+        "H1": "fixedsys",
+        "H2": "press-start-2p",
+        "Body": "minecraftia",
+        "Small": "silkscreen-400"
+    }
+}

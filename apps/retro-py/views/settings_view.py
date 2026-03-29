@@ -1,4 +1,3 @@
-import pygame
 from ui import *
 
 class SettingsView(BaseView):
@@ -84,16 +83,23 @@ class SettingsView(BaseView):
         # We now use the standard Widget.handle_event which dispatches to children (the PanelStack)
         return super().handle_event(event, mx, my)
 
+    def _get_engine(self):
+        if hasattr(self, 'game_state') and isinstance(self.game_state, dict):
+            return self.game_state.get('engine')
+        return None
+
     def _sync_ui(self, game_state):
         if getattr(self, '_ui_synced', False): return
         self._ui_synced = True
         
         # Display Sync
-        scale = game_state.get('config', {}).get('scale', 4)
+        engine = self._get_engine()
+        settings = engine.config.settings if engine else {}
+        scale = settings.get('config', {}).get('scale', 4)
         if scale in self.drop_scale.options:
             self.drop_scale.current_idx = self.drop_scale.options.index(scale)
             
-        crt = game_state.get('crt_settings', {})
+        crt = settings.get('crt_settings', {})
         if crt:
             self.btn_crt.text = "ON" if crt.get('enabled', True) else "OFF"
             self.slide_scanline.current = crt.get('scanline_alpha', 30)
@@ -102,71 +108,64 @@ class SettingsView(BaseView):
             self.slide_bloom_off.current = crt.get('bloom_offset', 1)
 
     def _on_scale_change(self, val):
-        if hasattr(self, 'game_state'):
-            self.game_state['config']['scale'] = val
+        engine = self._get_engine()
+        if engine:
+            engine.config.settings.setdefault('config', {})['scale'] = val
+            engine.set_scale(val)
 
     def _on_crt_toggle(self):
-        if hasattr(self, 'game_state'):
-            crt = self.game_state.get('crt_settings')
-            if crt:
-                crt['enabled'] = not crt['enabled']
-                self.btn_crt.text = "ON" if crt['enabled'] else "OFF"
+        engine = self._get_engine()
+        if engine:
+            crt = engine.config.settings.setdefault('crt_settings', {})
+            crt['enabled'] = not crt.get('enabled', True)
+            self.btn_crt.text = "ON" if crt['enabled'] else "OFF"
 
     def _on_crt_slider(self, key, val):
-        if hasattr(self, 'game_state'):
-            crt = self.game_state.get('crt_settings')
-            if crt:
-                crt[key] = int(val)
+        engine = self._get_engine()
+        if engine:
+            crt = engine.config.settings.setdefault('crt_settings', {})
+            crt[key] = int(val)
 
     def _on_font_change(self, role, font_name):
-        if hasattr(self, 'game_state'):
-            all_fonts = self.game_state.get('all_fonts', {})
+        engine = self._get_engine()
+        if engine:
+            all_fonts = engine.assets.cache.get('fonts', {})
             if font_name in all_fonts:
                 styles.set_font(role, all_fonts[font_name])
+                engine.config.settings.setdefault('fonts', {})[role] = font_name
 
     def _on_preview_change(self, role, text):
         """Updates the local preview text state when a TextField is edited."""
         self.preview_texts[role] = text
 
     def _save_settings(self):
-        """Extracts current game state and styles, and persists them via config_manager."""
-        if not hasattr(self, 'game_state'): return
-        gs = self.game_state
-        import config_manager
-        
-        settings = {
-            "config": {
-                "scale": gs.get("config", {}).get("scale", 4)
-            },
-            "crt_settings": gs.get("crt_settings", {}).copy(),
-            "fonts": {
-                "H1": styles.get_font("H1").name if styles.get_font("H1") else "fixedsys",
-                "H2": styles.get_font("H2").name if styles.get_font("H2") else "press-start-2p",
-                "Body": styles.get_font("Body").name if styles.get_font("Body") else "minecraftia",
-                "Small": styles.get_font("Small").name if styles.get_font("Small") else "silkscreen-400",
-            }
-        }
-        config_manager.save_settings(settings)
+        """Persists current engine settings and styles to disk."""
+        engine = self._get_engine()
+        if not engine:
+            return
+        fonts_cfg = engine.config.settings.setdefault('fonts', {})
+        for role, fallback in [("H1", "fixedsys"), ("H2", "press-start-2p"), ("Body", "minecraftia"), ("Small", "silkscreen-400")]:
+            font_obj = styles.get_font(role)
+            fonts_cfg[role] = font_obj.name if font_obj else fallback
+        engine.config.save()
 
     def _restore_defaults(self):
         """Resets all display and font settings to their hardcoded factory defaults."""
-        if not hasattr(self, 'game_state'): return
-        gs = self.game_state
-        import config_manager
-        defaults = config_manager.DEFAULT_SETTINGS
-        
-        gs['config']['scale'] = defaults['config']['scale']
-        if 'crt_settings' in gs:
-            gs['crt_settings'].update(defaults['crt_settings'])
-            
-        all_fonts = gs.get('all_fonts', {})
-        for role, fname in defaults['fonts'].items():
-            if fname in all_fonts:
-                styles.set_font(role, all_fonts[fname])
+        engine = self._get_engine()
+        if not engine:
+            return
+        defaults = engine.config.DEFAULT_SETTINGS
+        engine.config.settings = {
+            "config": defaults["config"].copy(),
+            "crt_settings": defaults["crt_settings"].copy(),
+            "fonts": defaults["fonts"].copy()
+        }
+        engine.set_scale(engine.config.settings["config"]["scale"])
+        engine.assets.setup_font_styles(engine.config.settings["fonts"])
                 
         # Force a UI sync next frame
         self._ui_synced = False
-        self._sync_ui(gs)
+        self._sync_ui(self.game_state)
 
     def draw_view(self, buffer, game_state):
         """Standard draw loop, includes continuous font/dimension synchronization."""
@@ -175,7 +174,8 @@ class SettingsView(BaseView):
         self._sync_ui(game_state)
         
         # --- DYNAMIC FONT POPULATION ---
-        all_fonts = game_state.get('all_fonts', {})
+        engine = self._get_engine()
+        all_fonts = engine.assets.cache.get('fonts', {}) if engine else {}
         if all_fonts:
             font_names = sorted(list(all_fonts.keys()))
             roles = ["H1", "H2", "Body", "Small"]

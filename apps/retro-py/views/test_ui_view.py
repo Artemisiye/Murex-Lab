@@ -1,4 +1,3 @@
-import pygame
 from ui import *
 
 class TestUIView(BaseView):

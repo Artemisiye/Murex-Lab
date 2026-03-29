@@ -54,7 +54,8 @@ class WorkshopView(BaseView):
                 self.selection_index = max(0, self.selection_index - 1)
                 return True
             if event.key in [pygame.K_SPACE, pygame.K_RETURN]:
-                blueprint_system = self.game_state.get('crafting_system')
+                state = self.game_state.get('state') if hasattr(self, 'game_state') else None
+                blueprint_system = state.get('crafting_system') if state else None
                 if blueprint_system:
                     blueprints = blueprint_system.get_all_blueprints()
                     if 0 <= self.selection_index < len(blueprints):
@@ -69,7 +70,8 @@ class WorkshopView(BaseView):
         
         # 2. Dynamic Blueprint List (Populated only once if empty)
         if not self.blueprint_list.children:
-            blueprint_system = game_state.get('crafting_system')
+            state = game_state.get('state') if isinstance(game_state, dict) else None
+            blueprint_system = state.get('crafting_system') if state else None
             if blueprint_system:
                 blueprints = blueprint_system.get_all_blueprints()
                 for i, bp in enumerate(blueprints):

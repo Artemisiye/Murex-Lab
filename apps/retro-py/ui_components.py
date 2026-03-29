@@ -1,5 +1,4 @@
 import pygame
-import os
 
 GRID_SIZE = 8
 

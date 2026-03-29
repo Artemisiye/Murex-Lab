@@ -1,6 +1,6 @@
 import pygame
 from .style import styles
-from .base import Widget, GRID_SIZE
+from .base import Widget
 
 # ========================
 #  | Panel |             |

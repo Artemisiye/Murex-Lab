@@ -1,5 +1,4 @@
 import pygame
-import os
 from ui import *
 
 class MapView(BaseView):
@@ -24,8 +23,8 @@ class MapView(BaseView):
         # 3. Location Details Panel
         # ========================
         self.location_details = Panel(x=48, y=0, w=12, h=8, title="LOC~ DATA")
-        self.tile_coord = Label(x=1.5, y=1.5, text=f"POS: ~,~")
-        self.tile_name = Label(x=1.5, y=3.5, text=f"AREA: ~~~~")
+        self.tile_coord = Label(x=1.5, y=1.5, text="POS: ~,~")
+        self.tile_name = Label(x=1.5, y=3.5, text="AREA: ~~~~")
         self.location_details.add_child(self.tile_coord)
         self.location_details.add_child(self.tile_name)
         self.add_child(self.location_details)
@@ -57,7 +56,10 @@ class MapView(BaseView):
         if super().handle_event(event, mx, my):
             return True
 
-        world_map = self.game_state['world_map']
+        state = self.game_state.get('state') if hasattr(self, 'game_state') else None
+        world_map = state.get('world_map') if state else None
+        if not world_map:
+            return False
         if event.type == pygame.KEYDOWN:
             dx, dy = 0, 0
             if event.key == pygame.K_UP: dy = -1
@@ -78,11 +80,12 @@ class MapView(BaseView):
                         loot = self.active_region.hunt(rx, ry)
                     
                     if loot:
-                        inv = self.game_state['player_inventory'] if world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y']).type == 'lab' else self.game_state['player_backpack']
+                        inv = state.get('player_inventory') if world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y']).type == 'lab' else state.get('player_backpack')
                         import random
-                        for item_id in loot:
-                            inv.add_item(item_id, random.randint(1, 2))
-                        print(f"Looted: {loot}")
+                        if inv:
+                            for item_id in loot:
+                                inv.add_item(item_id, random.randint(1, 2))
+                            print(f"Looted: {loot}")
                 else:
                     cell = world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y'])
                     if cell:
@@ -101,8 +104,9 @@ class MapView(BaseView):
 
         return False
 
-    def draw_view(self, buffer, game_state):
-        world_map = game_state['world_map']
+    def draw_view(self, buffer, context):
+        state = context.get('state', {})
+        world_map = state.get('world_map')
         COLOR_ACCENT = styles.get_color("accent")
         COLOR_FG = styles.get_color("fg")
         COLOR_DIM = styles.get_color("dim")
@@ -140,6 +144,8 @@ class MapView(BaseView):
         # 1. Map Content Stack
         # ========================
         self.map_stack.draw(buffer)
+        if not world_map:
+            return
 
         # ========================
         # 2. World Map

@@ -11,10 +11,7 @@ class InventoryView(BaseView):
         self.add_child(self.inv_panel)
 
     def handle_event(self, event, mx, my):
-        # BaseView handle_event logic
-        if super().handle_event(event, mx, my):
-            return True
-            
+        """Standard handle_event for custom navigation."""
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
                 self.selection_index += 1
@@ -24,14 +21,17 @@ class InventoryView(BaseView):
                 return True
         return False
 
-    def draw(self, buffer):
-        if not self.game_state: return
+    def draw_view(self, buffer, context):
+        """Rendering loop with dynamic inventory context detection."""
+        # 1. Base widget tree draw
+        super().draw_view(buffer, context)
         
-        # Update dynamically
-        world_map = self.game_state.get('world_map')
-        player_inventory = self.game_state.get('player_inventory')
-        player_backpack = self.game_state.get('player_backpack')
+        state = context.get('state', {})
+        world_map = state.get('world_map')
+        player_inventory = state.get('player_inventory')
+        player_backpack = state.get('player_backpack')
 
+        # Determine if we are in the Lab or Field
         active_inv = player_inventory
         title = "VAULT"
         if world_map and world_map.get_cell(world_map.player_pos['x'], world_map.player_pos['y']).type != 'lab':
@@ -40,10 +40,7 @@ class InventoryView(BaseView):
         
         self.inv_panel.titles = [{"text": title, "color": styles.get_color("accent")}]
         
-        # Draw Widget hierarchy
-        super().draw(buffer)
-        
-        # List Overlay (simplistic list)
+        # 2. Dynamic Item List Overlay
         if active_inv:
             items = list(active_inv.get_all().values())
             body_f = styles.get_font("Body")
@@ -52,5 +49,4 @@ class InventoryView(BaseView):
                     if i > 12: break
                     y_row = 100 + i * 16 # Approx pixel baseline for now
                     color = styles.get_color("accent") if i == self.selection_index else styles.get_color("fg")
-                    # item is an InventoryItem object, not a dict
                     body_f.draw(buffer, f"- {item.item_id} [x{item.quantity}]", 32, y_row, color)
