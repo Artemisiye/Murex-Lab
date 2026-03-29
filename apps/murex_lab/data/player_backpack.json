@@ -3,6 +3,31 @@
     "items": {
         "rough_stone": {
             "item_id": "rough_stone",
+            "quantity": 5,
+            "data": {}
+        },
+        "plant_fibers": {
+            "item_id": "plant_fibers",
+            "quantity": 5,
+            "data": {}
+        },
+        "native_copper": {
+            "item_id": "native_copper",
+            "quantity": 2,
+            "data": {}
+        },
+        "wild_seeds": {
+            "item_id": "wild_seeds",
+            "quantity": 6,
+            "data": {}
+        },
+        "oak_log": {
+            "item_id": "oak_log",
+            "quantity": 3,
+            "data": {}
+        },
+        "tree_bark": {
+            "item_id": "tree_bark",
             "quantity": 2,
             "data": {}
         }

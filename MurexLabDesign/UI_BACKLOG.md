@@ -25,3 +25,7 @@ This document tracks identified gaps and prioritized enhancements for the Retro-
 ## 6. Standardized Widget Padding & Baseline Alignment
 - **Problem**: Different widgets (Labels vs Dropdowns/Sliders) define their height and drawing baselines differently. A `Label`'s text baseline aligns differently than the text inside a padded `Dropdown`. This forces manual fractional `y` offsets (e.g., `y=1.5` vs `y=2`) to align adjacent elements visually, which breaks the consistency of the grid coordinate system.
 - **Goal**: Standardize how widgets report their structural bounds versus their visual bounds. Introduce a uniform text baseline property across all widgets so they can be horizontally aligned via a Layout Provider without manual tweaking.
+
+## 7. Tab Change Selection Reset
+- **Problem**: Legacy behavior reset `selection_index` on tab changes; the engine currently preserves prior selection state across views.
+- **Goal**: Decide whether tab transitions should reset selection to avoid stale focus in list-based views.

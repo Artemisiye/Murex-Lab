@@ -121,9 +121,10 @@ class Button(Widget):
     A standard pressable button widget. Supports text, icons, and automated 
     dimension calculation based on content.
     """
-    def __init__(self, text="", x=0, y=0, w=None, h=None, 
-                 callback=None, role="Body", o_padding=0, 
-                 i_padding=0.25, icon=None, border=True):
+    def __init__(self, text="", x=0, y=0, w=None, h=None,
+                 callback=None, role="Body", o_padding=0,
+                 i_padding=0.25, icon=None, border=True,
+                 has_shadow=True, can_focus=True):
         """
         Args:
             text: Button label text.
@@ -166,8 +167,8 @@ class Button(Widget):
         self.is_pressed = False
         self.i_padding = i_padding
         self.o_padding = o_padding
-        self.can_focus = True
-        self.has_shadow = True
+        self.can_focus = can_focus
+        self.has_shadow = has_shadow
 
     def _draw_self(self, surface, abs_rect):
         # Color logic

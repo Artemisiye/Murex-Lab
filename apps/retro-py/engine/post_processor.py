@@ -59,6 +59,8 @@ class BloomEffect(Effect):
         self.settings = settings
 
     def apply(self, screen, scale):
+        if not self.settings.get("enabled", True):
+            return
         alpha = self.settings.get("bloom_alpha", 0)
         if alpha <= 0: return
         

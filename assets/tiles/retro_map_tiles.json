@@ -1,0 +1,26 @@
+{
+  "world": {
+    "undiscovered_fill": [15, 15, 18],
+    "undiscovered_outline": [5, 5, 5],
+    "player_outline": [255, 255, 100],
+    "symbol": [180, 180, 180],
+    "types": {
+      "default": [40, 40, 45],
+      "forest": [30, 60, 30],
+      "mountains": [60, 60, 60],
+      "water": [30, 30, 80],
+      "lab": [80, 80, 255],
+      "ocean": [20, 20, 40],
+      "river": [40, 40, 100],
+      "beach": [100, 100, 60],
+      "plains": [40, 50, 40]
+    }
+  },
+  "regional": {
+    "base": [30, 30, 35],
+    "node_oak": [0, 200, 0],
+    "node_default": [150, 150, 150],
+    "entity": [200, 50, 50],
+    "player_outline": [255, 255, 100]
+  }
+}

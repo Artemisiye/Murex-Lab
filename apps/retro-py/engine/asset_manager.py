@@ -1,6 +1,7 @@
-import pygame
+import json
 import os
-from renderer import SpriteFont
+import pygame
+from .renderer import SpriteFont
 
 class AssetManager:
     """
@@ -12,7 +13,8 @@ class AssetManager:
         self.cache = {
             "fonts": {},
             "sprites": {},
-            "sounds": {}
+            "sounds": {},
+            "data": {}
         }
 
     def load_font(self, name, json_path):
@@ -50,6 +52,12 @@ class AssetManager:
             self.cache["sprites"][name] = pygame.image.load(full_path).convert_alpha()
         return self.cache["sprites"][name]
 
+    def load_image(self, name, full_path):
+        """Loads and caches a pygame surface from an absolute path."""
+        if name not in self.cache["sprites"]:
+            self.cache["sprites"][name] = pygame.image.load(full_path).convert_alpha()
+        return self.cache["sprites"][name]
+
     def get_sprite(self, name):
         """Retrieves a cached sprite."""
         return self.cache["sprites"].get(name)
@@ -64,6 +72,19 @@ class AssetManager:
     def get_sound(self, name):
         """Retrieves a cached sound."""
         return self.cache["sounds"].get(name)
+
+    def load_json(self, name, json_path):
+        """Loads and caches a JSON data file."""
+        if name not in self.cache["data"]:
+            if not os.path.exists(json_path):
+                return None
+            with open(json_path, "r", encoding="utf-8") as f:
+                self.cache["data"][name] = json.load(f)
+        return self.cache["data"][name]
+
+    def get_json(self, name):
+        """Retrieves cached JSON data."""
+        return self.cache["data"].get(name)
 
     def flush_cache(self, asset_type=None):
         """Clears memory for a specific category or the entire cache."""

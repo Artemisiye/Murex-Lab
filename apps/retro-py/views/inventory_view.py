@@ -2,8 +2,9 @@ import pygame
 from ui import *
 
 class InventoryView(BaseView):
-    def __init__(self):
+    def __init__(self, engine=None):
         super().__init__()
+        self.engine = engine
         self.selection_index = 0
         
         # Persistent Panel for content

@@ -6,8 +6,9 @@ class SettingsView(BaseView):
     Refactored from a monolithic implementation to a modular, widget-based PanelStack.
     Supports real-time display/font updates and persistent user preferences.
     """
-    def __init__(self):
+    def __init__(self, engine=None):
         super().__init__()
+        self.engine = engine
         self.preview_texts = {
             "H1": "MUREX LAB", 
             "H2": "Header Text Example", 

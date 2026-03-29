@@ -6,8 +6,9 @@ class WorkshopView(BaseView):
     The Workshop station view where players can craft items from blueprints.
     Utilizes a multi-panel layout for blueprints, stations, and component selection.
     """
-    def __init__(self):
+    def __init__(self, engine=None):
         super().__init__()
+        self.engine = engine
         self.selection_index = 0
 
         # Building components as children of the view

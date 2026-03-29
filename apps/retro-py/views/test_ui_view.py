@@ -5,8 +5,9 @@ class TestUIView(BaseView):
     A sandbox view for testing new UI components and layouts.
     Includes examples of Buttons, Sliders, Dropdowns, and ScrollContainers.
     """
-    def __init__(self):
+    def __init__(self, engine=None):
         super().__init__()
+        self.engine = engine
         
         # 1. Multi-Title Panel with Dividers
         main_panel = Panel(title="MAIN")

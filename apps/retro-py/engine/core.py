@@ -66,6 +66,21 @@ class MurexEngine:
         font_dir = os.path.join(self.asset_root, "sprite-fonts")
         self.assets.load_fonts_from_dir(font_dir)
         self.assets.setup_font_styles(self.config.get("fonts", {}))
+
+        tiles_path = os.path.join(self.asset_root, "tiles", "retro_map_tiles.json")
+        self.assets.load_json("retro_map_tiles", tiles_path)
+
+        ui_dir = os.path.join(self.asset_root, "ui")
+        arrow_files = {
+            "ui_arrow_up": "▲-7px.png",
+            "ui_arrow_down": "▼-7px.png",
+            "ui_arrow_left": "◀-7px.png",
+            "ui_arrow_right": "▶-7px.png",
+        }
+        for key, fname in arrow_files.items():
+            path = os.path.join(ui_dir, fname)
+            if os.path.exists(path):
+                self.assets.load_image(key, path)
         
         # 4. Wake Up STATE (Game Logic & Persistence)
         self.state.boot_game_logic(self.data_root)
@@ -123,7 +138,16 @@ class MurexEngine:
             # 2. Manager-level handling
             action = self.input.handle_raw_event(event)
             if action:
-                actions.append(action)
+                consumed = False
+                if active_view and hasattr(active_view, "handle_action"):
+                    result = active_view.handle_action(action, self)
+                    if isinstance(result, str) or isinstance(result, tuple):
+                        actions.append(result)
+                        consumed = True
+                    else:
+                        consumed = bool(result)
+                if not consumed:
+                    actions.append(action)
                 
             # 3. View-level handling
             if active_view:
@@ -138,10 +162,12 @@ class MurexEngine:
                 }
                 
                 if hasattr(active_view, "dispatch_view_event"):
-                    active_view.dispatch_view_event(event, context)
+                    result = active_view.dispatch_view_event(event, context)
                 else:
                     # Fallback for widgets that aren't full views
-                    active_view.handle_event(event, context)
+                    result = active_view.handle_event(event, context)
+                if result:
+                    actions.append(result)
                     
         return actions
 
@@ -294,6 +320,13 @@ class MurexEngine:
         v_name = "unknown"
         if hasattr(self, 'active_tab_index') and hasattr(self, '_last_tabs'):
              v_name = self._last_tabs[self.active_tab_index].lower()
+
+        # World position (if available)
+        wx = wy = None
+        world_map = self.state.get("world_map") if hasattr(self, "state") else None
+        if world_map and getattr(world_map, "player_pos", None):
+            wx = world_map.player_pos.get('x')
+            wy = world_map.player_pos.get('y')
         
         # RAM usage (placeholder or helper)
         try:
@@ -303,7 +336,8 @@ class MurexEngine:
         except:
             ram_val = 0
             
-        debug_text = f"FPS {fps} | TIME {ms:02}ms | UP {up_min:02}:{up_sec:02} | VIEW {v_name} | FOCUS {focused_name} | CAPT {captured_name} | RAM {ram_val}MB | POS {vmx},{vmy}"
+        world_str = f" | WORLD {wx},{wy}" if wx is not None and wy is not None else ""
+        debug_text = f"FPS {fps} | TIME {ms:02}ms | UP {up_min:02}:{up_sec:02} | VIEW {v_name}{world_str} | FOCUS {focused_name} | CAPT {captured_name} | RAM {ram_val}MB | POS {vmx},{vmy}"
         
         # 3. Render Solid Bar
         tw, th = self.hd_font.size(debug_text)
@@ -325,6 +359,10 @@ class MurexEngine:
             # 1. Identify Active View
             active_tab = tabs[self.active_tab_index]
             active_view = view_instances.get(active_tab)
+            if active_tab == "MAP":
+                self.input.set_mode("MAP")
+            else:
+                self.input.set_mode("MENU")
             
             # 2. Handle Logic & Events
             actions = self.handle_events(active_view, tabs)
@@ -356,6 +394,9 @@ class MurexEngine:
                         tabs = new_tabs
                         self._last_tabs = tabs
                         print("Engine: Hot Reload Successful")
+
+                if action == "GOTO_WORKSHOP" and "WORKSHOP" in tabs:
+                    self.active_tab_index = tabs.index("WORKSHOP")
 
             # 4. Global Rendering Pipeline
             self.render(active_view, active_tab, tabs)
