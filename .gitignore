@@ -2,3 +2,6 @@ __pycache__
 .venv
 .vscode
 .ruff_cache
+.agents
+skills-lock.json
+Murex-Lab.code-workspace

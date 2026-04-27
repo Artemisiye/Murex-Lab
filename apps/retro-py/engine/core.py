@@ -328,16 +328,16 @@ class MurexEngine:
             wx = world_map.player_pos.get('x')
             wy = world_map.player_pos.get('y')
         
-        # RAM usage (placeholder or helper)
-        try:
-            import psutil
-            process = psutil.Process(os.getpid())
-            ram_val = process.memory_info().rss // 1024 // 1024
-        except:
-            ram_val = 0
+        # # RAM usage (placeholder or helper)
+        # try:
+        #     import psutil
+        #     process = psutil.Process(os.getpid())
+        #     ram_val = process.memory_info().rss // 1024 // 1024
+        # except:
+        #     ram_val = 0
             
         world_str = f" | WORLD {wx},{wy}" if wx is not None and wy is not None else ""
-        debug_text = f"FPS {fps} | TIME {ms:02}ms | UP {up_min:02}:{up_sec:02} | VIEW {v_name}{world_str} | FOCUS {focused_name} | CAPT {captured_name} | RAM {ram_val}MB | POS {vmx},{vmy}"
+        debug_text = f"FPS {fps} | TIME {ms:02}ms | UP {up_min:02}:{up_sec:02} | VIEW {v_name}{world_str} | FOCUS {focused_name} | CAPT {captured_name} | POS {vmx},{vmy}"
         
         # 3. Render Solid Bar
         tw, th = self.hd_font.size(debug_text)
