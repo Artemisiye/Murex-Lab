@@ -53,7 +53,7 @@ def build_exe(app_dir, entry_point_name, app_name, icon_path=None):
         '--onefile',             # Single .exe file
         '--windowed',            # No console window
         '--contents-directory=.', # Keep contents in root of temp dir
-        f'--paths={base_path}',   # Add project root to path so _engine imports work
+        f'--paths={base_path}',   # Add project root to path so flask_packager imports work
     ]
     
     # Add data arguments
@@ -71,7 +71,7 @@ def build_exe(app_dir, entry_point_name, app_name, icon_path=None):
 
 if __name__ == "__main__":
     # Example usage CLI
-    # python _engine/builder.py apps/Idea-E app.py "ArtificerCodex"
+    # python apps/flask_packager/builder.py apps/Idea-E app.py "ArtificerCodex"
     if len(sys.argv) < 4:
         print("Usage: python builder.py <app_dir> <entry_point> <exe_name>")
     else:

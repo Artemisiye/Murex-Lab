@@ -7,13 +7,13 @@ This repository contains the main game development, the capsule engine, and the 
 ## Repository Structure
 
 > [!IMPORTANT]
-> **AI Agents/Developers:** Please refer to [AGENT_CONTEXT.md](./AGENT_CONTEXT.md) for a comprehensive overview of the architecture, tech stack, and implementation guidelines.
+> **AI Agents/Developers:** Please refer to [CLAUDE.md](./CLAUDE.md) for a comprehensive overview of the architecture, tech stack, and implementation guidelines.
 
 
 - **`apps/`**: The active game development folders.
     - **`murex_lab/`**: The main game (In Development).
     - **`hello_world/`**: A capsule engine test case.
-- **`_engine/`**: The **Murex Capsule Engine**. Tools to wrap Flask apps into native standalone executables.
+    - **`flask_packager/`**: Tools to wrap Flask apps into native standalone executables.
 - **`MurexLabDesign/`**: Living design documents.
     - `GDD.md`: The Master Game Design Document.
     - `NARRATIVE_POOL.md`: Collection of narrative themes and lore.
@@ -38,5 +38,5 @@ We use the internal **Capsule Engine** to freeze the Python game into a distribu
 
 ```powershell
 # Example Build Command
-python _engine/builder.py apps/hello_world app.py "MurexHelloWorld"
+python apps/flask_packager/builder.py apps/hello_world app.py "MurexHelloWorld"
 ```

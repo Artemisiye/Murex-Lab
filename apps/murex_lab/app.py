@@ -3,10 +3,10 @@ import sys
 import os
 import random
 
-# Add project root to path so we can find _engine
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+# Add apps/ to path so we can find flask_packager
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from _engine.game_client import launch
+from flask_packager.game_client import launch
 
 from modules.crafting import CraftingManager
 from modules.inventory import Inventory

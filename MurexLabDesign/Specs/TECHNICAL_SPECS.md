@@ -9,7 +9,7 @@ A high-level summary of the engine architecture, the core technological stack (P
 - `apps/murex_lab/data/`: JSON storage for player state, world generation, and blueprints.
 - `apps/murex_lab/static/`: CSS styling (style.css), JS logic (main.js), and CSS-based assets.
 - `apps/murex_lab/templates/`: HTML structures and view partials (Inventory, Workshop, Map).
-- `_engine/`: Shared game client launcher.
+- `apps/flask_packager/`: Shared game client launcher.
 
 
 

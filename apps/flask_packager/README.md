@@ -1,6 +1,6 @@
-# 🏗️ Murex Engine Infrastructure
+# 🏗️ Flask Packager
 
-This folder contains the reusable core components for packaging web-based games into native executables.
+This folder contains the reusable core components for packaging Flask-based web games into native executables. It is not a gameplay engine — see `apps/retro-py/engine/` (pygame runtime) or `MurexLabDesign/Specs/ARCHITECTURE_SPECS.md` (planned `murex-engine` facade) for that.
 
 ## Structure
 - **`game_client.py`**: The runtime wrapper. Imports your Flask app and displays it in a native window.
@@ -22,10 +22,10 @@ if __name__ == "__main__":
     import sys
     import os
     
-    # Add project root to path so we can find _engine
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+    # Add apps/ to path so we can find flask_packager
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
     
-    from _engine.game_client import launch
+    from flask_packager.game_client import launch
     launch(app, title="My Awesome Game", width=1280, height=800)
 ```
 
@@ -34,9 +34,9 @@ if __name__ == "__main__":
 Run the builder script from the project root:
 
 ```powershell
-# Syntax: python _engine/builder.py <folder> <main_script> <exe_name>
+# Syntax: python apps/flask_packager/builder.py <folder> <main_script> <exe_name>
 
-python _engine/builder.py apps/Idea-E app.py "CodexGame"
+python apps/flask_packager/builder.py apps/Idea-E app.py "CodexGame"
 ```
 
 The resulting optimized `.exe` will be in the `dist/` folder.

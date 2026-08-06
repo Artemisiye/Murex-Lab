@@ -2,10 +2,10 @@ from flask import Flask, render_template
 import sys
 import os
 
-# Add project root to path so we can find _engine
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+# Add apps/ to path so we can find flask_packager
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from _engine.game_client import launch
+from flask_packager.game_client import launch
 
 app = Flask(__name__)
 
